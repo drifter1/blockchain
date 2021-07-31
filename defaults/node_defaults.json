@@ -1,0 +1,8 @@
+{
+    "default_ip_address": "127.0.0.1",
+    "port_min": 50000,
+    "port_max": 60000,
+    "default_directory": "../.node",
+    "default_nodes_filename": "nodes.json",
+    "default_update_interval": 60
+}

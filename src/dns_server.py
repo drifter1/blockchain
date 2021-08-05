@@ -2,13 +2,14 @@ from flask import Flask
 import os
 import _thread
 import time
-import requests
 from argparse import ArgumentParser
 
 from dns_server.settings import DNS_Server_Settings
-from common.node_endpoints import node_endpoints
+from common.node import json_destruct_node
+from common.node_endpoints import general_connection_check, local_remove_node, local_retrieve_nodes, node_endpoints
 
 # Setup Files Routine
+
 
 def setup_files():
     # directory management
@@ -36,19 +37,15 @@ def update_nodes():
         # check if nodes are reachable
         print("Updating nodes started!")
 
-        json_nodes = requests.get("http://" + settings.ip_address +
-                                  ":" + str(settings.port) + "/nodes/").json()
+        json_nodes = local_retrieve_nodes(settings)
 
         for json_node in json_nodes:
             try:
-                requests.get(
-                    "http://" + json_node["ip_address"] + ":" + str(json_node["port"]))
+                general_connection_check(settings, json_node)
             except:
-                print("Node " + json_node["ip_address"] + ":" +
-                      str(json_node["port"]) + " is unreachable!")
+                print("Node " + str(json_destruct_node(json_node)) + " is unreachable!")
 
-                requests.delete("http://" + settings.ip_address + ":" + str(settings.port) + "/nodes/",
-                                json=json_node)
+                local_remove_node(settings, json_node)
 
         print("Updating nodes finished!")
 

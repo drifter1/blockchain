@@ -8,19 +8,10 @@ Educational Python Implementation of a Blockchain
 
 # REST API
 
-## DNS Server
+## Node Endpoints
 | Resource Type       | HTTP Verb | Endpoint   | Request (JSON) | Response (JSON) |  Description                          |
 | :----------------:  | :-----:   | :-----:    | :-----------:  | :-----------:   |  :--------------------------------    |
-| Initial Connection  | POST      | /          | Node           | Node            |  Initial network connection           |    
-| Nodes               | GET       | /nodes/    | -              | Nodes array     |  Retrieve all known nodes             |
-| Nodes               | POST      | /nodes/    | Node           | Nodes array     |  Add node to known nodes              |
-| Nodes               | DELETE    | /nodes/    | Node           | Nodes array     |  Remove node from known nodes         |
-
-## Basic Client
-| Resource Type       | HTTP Verb | Endpoint   | Request (JSON) | Response (JSON) |  Description                          |
-| :----------------:  | :-----:   | :-----:    | :-----------:  | :-----------:   |  :--------------------------------    |
-| Initial Connection  | POST      | /          | Node           | Node            |  Initial network connection           |   
-| Connection Check    | GET       | /          | -              | -               |  Check if node is reachable/online    |    
-| Nodes               | GET       | /nodes/    | -              | Nodes array     |  Retrieve all known nodes             |
+| Connection Check    | POST      | /          | Node           | Node            |  Check if node is reachable/online    |    
+| Nodes               | GET       | /nodes/    | Node           | Nodes array     |  Retrieve all known nodes             |
 | Nodes               | POST      | /nodes/    | Node           | Nodes array     |  Add node to known nodes              |
 | Nodes               | DELETE    | /nodes/    | Node           | Nodes array     |  Remove node from known nodes         |

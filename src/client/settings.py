@@ -4,6 +4,7 @@ import random
 from common.node import json_construct_node
 from common.settings import Node_Settings
 
+
 class Client_Settings(Node_Settings):
     def __init__(self, ip_address=None, port=None, directory=None, nodes_filename=None, blockchain_filename=None, transactions_filename=None, wallets_filename=None, update_interval=None, known_nodes_limit=None, main_dns_server_ip_address=None, main_dns_server_port=None):
 
@@ -36,3 +37,5 @@ class Client_Settings(Node_Settings):
             main_dns_server_ip_address != None) else client_defaults["main_dns_server_ip_address"]
         self.main_dns_server_port = main_dns_server_port if (
             main_dns_server_port != None) else client_defaults["main_dns_server_port"]
+        self.main_dns_server_json_node = json_construct_node(
+            self.main_dns_server_ip_address, self.main_dns_server_port)

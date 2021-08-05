@@ -2,20 +2,11 @@ from flask import Flask
 import os
 import _thread
 import time
-import requests
 from argparse import ArgumentParser
 
 from client.settings import Client_Settings
-from common.node_endpoints import node_endpoints
-
-# main Flask App
-
-app = Flask(__name__)
-
-@app.route('/')
-def connection_check():
-
-    return {}
+from common.node import json_destruct_node
+from common.node_endpoints import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes, node_endpoints
 
 # Setup Files Routine
 
@@ -39,27 +30,27 @@ def setup_files():
 
     # blockchain file
     if not os.path.isfile(settings.blockchain_path):
-        nodes_file = open(settings.blockchain_path, "w")
-        nodes_file.write("[]")
-        nodes_file.close()
+        blockchain_file = open(settings.blockchain_path, "w")
+        blockchain_file.write("[]")
+        blockchain_file.close()
         print("File \"" + settings.blockchain_path + "\" created")
     else:
         print("File \"" + settings.blockchain_path + "\" already exists!")
 
     # transactions file
     if not os.path.isfile(settings.transactions_path):
-        nodes_file = open(settings.transactions_path, "w")
-        nodes_file.write("[]")
-        nodes_file.close()
+        transactions_file = open(settings.transactions_path, "w")
+        transactions_file.write("[]")
+        transactions_file.close()
         print("File \"" + settings.transactions_path + "\" created")
     else:
         print("File \"" + settings.transactions_path + "\" already exists!")
 
     # wallets file
     if not os.path.isfile(settings.wallets_path):
-        nodes_file = open(settings.wallets_path, "w")
-        nodes_file.write("[]")
-        nodes_file.close()
+        wallets_file = open(settings.wallets_path, "w")
+        wallets_file.write("[]")
+        wallets_file.close()
         print("File \"" + settings.wallets_path + "\" created")
     else:
         print("File \"" + settings.wallets_path + "\" already exists!")
@@ -68,22 +59,17 @@ def setup_files():
 
 
 def check_known_nodes():
-    json_nodes = requests.get("http://" + settings.ip_address +
-                              ":" + str(settings.port) + "/nodes/").json()
+    json_nodes = local_retrieve_nodes(settings)
 
     for json_node in json_nodes:
         try:
-            requests.post(
-                "http://" + json_node["ip_address"] + ":" + str(json_node["port"]), json=settings.json_node)
+            general_connection_check(settings, json_node)
         except:
-            print("Node " + json_node["ip_address"] + ":" +
-                  str(json_node["port"]) + " is unreachable!")
+            print("Node " + str(json_destruct_node(json_node)) + " is unreachable!")
 
-            requests.delete("http://" + settings.ip_address +
-                            ":" + str(settings.port) + "/nodes/", json=json_node)
+            local_remove_node(settings, json_node)
 
-    json_nodes = requests.get("http://" + settings.ip_address +
-                              ":" + str(settings.port) + "/nodes/").json()
+    json_nodes = local_retrieve_nodes(settings)
 
     settings.known_nodes = len(json_nodes)
 
@@ -94,24 +80,19 @@ def check_known_nodes():
 
 
 def retrieve_known_nodes_connections():
-    json_nodes = requests.get("http://" + settings.ip_address +
-                              ":" + str(settings.port) + "/nodes/").json()
+    json_nodes = local_retrieve_nodes(settings)
 
     for json_node in json_nodes:
         try:
-            known_nodes = requests.get(
-                "http://" + json_node["ip_address"] + ":" + str(json_node["port"]) + "/nodes/").json()
+            known_nodes = general_retrieve_nodes(settings, json_node)
 
             for known_node in known_nodes:
-                if known_node != settings.json_node:
-                    requests.post("http://" + settings.ip_address +
-                                  ":" + str(settings.port) + "/nodes/", json=known_node)
+                local_add_node(settings, known_node)
 
         except:
             pass
 
-    json_nodes = requests.get("http://" + settings.ip_address +
-                              ":" + str(settings.port) + "/nodes/").json()
+    json_nodes = local_retrieve_nodes(settings)
 
     settings.known_nodes = len(json_nodes)
 
@@ -123,16 +104,11 @@ def retrieve_known_nodes_connections():
 
 def contact_dns_server():
     try:
-        requests.post("http://" + settings.main_dns_server_ip_address +
-                      ":" + str(settings.main_dns_server_port) + "/", json=settings.json_node)
-
-        json_nodes = requests.get(
-            "http://" + settings.main_dns_server_ip_address + ":" + str(settings.main_dns_server_port) + "/nodes/").json()
+        json_nodes = general_retrieve_nodes(
+            settings, settings.main_dns_server_json_node)
 
         for json_node in json_nodes:
-            if json_node != settings.json_node:
-                requests.post("http://" + settings.ip_address +
-                              ":" + str(settings.port) + "/nodes/", json=json_node)
+            local_add_node(settings, json_node)
 
     except:
         print("DNS Server is unreachable!")
@@ -202,6 +178,8 @@ settings = Client_Settings(
 )
 
 # main function
+
+app = Flask(__name__)
 
 node_endpoints(app, settings)
 

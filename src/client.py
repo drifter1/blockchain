@@ -2,11 +2,14 @@ from flask import Flask
 import os
 import _thread
 import time
+import json
 from argparse import ArgumentParser
 
 from client.settings import Client_Settings
 from common.node import json_destruct_node
 from common.node_endpoints import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes, node_endpoints
+from common.blockchain import Blockchain, json_construct_blockchain_info
+from common.blockchain_endpoints import blockchain_endpoints
 
 # Setup Files Routine
 
@@ -28,14 +31,22 @@ def setup_files():
     else:
         print("File \"" + settings.nodes_path + "\" already exists!")
 
-    # blockchain file
+    # blockchain info file
     if not os.path.isfile(settings.blockchain_path):
         blockchain_file = open(settings.blockchain_path, "w")
-        blockchain_file.write("[]")
+        json.dump(obj=json_construct_blockchain_info(
+            Blockchain()), fp=blockchain_file)
         blockchain_file.close()
         print("File \"" + settings.blockchain_path + "\" created")
     else:
         print("File \"" + settings.blockchain_path + "\" already exists!")
+
+    # blocks folder
+    if not os.path.isdir(settings.blocks_path):
+        os.mkdir(settings.blocks_path)
+        print("Folder \"" + settings.blocks_path + "\" created")
+    else:
+        print("Folder \"" + settings.blocks_path + "\" already exists!")
 
     # transactions file
     if not os.path.isfile(settings.transactions_path):
@@ -63,7 +74,7 @@ def check_known_nodes():
 
     for json_node in json_nodes:
         try:
-            general_connection_check(settings, json_node)
+            general_connection_check(json_node, settings.json_node)
         except:
             print("Node " + str(json_destruct_node(json_node)) + " is unreachable!")
 
@@ -84,7 +95,7 @@ def retrieve_known_nodes_connections():
 
     for json_node in json_nodes:
         try:
-            known_nodes = general_retrieve_nodes(settings, json_node)
+            known_nodes = general_retrieve_nodes(json_node, settings.json_node)
 
             for known_node in known_nodes:
                 local_add_node(settings, known_node)
@@ -104,8 +115,7 @@ def retrieve_known_nodes_connections():
 
 def contact_dns_server():
     try:
-        json_nodes = general_retrieve_nodes(
-            settings, settings.main_dns_server_json_node)
+        json_nodes = general_retrieve_nodes(settings.main_dns_server_json_node, settings.json_node)
 
         for json_node in json_nodes:
             local_add_node(settings, json_node)
@@ -155,6 +165,10 @@ parser.add_argument("-n", "--nodes", default=None, type=str,
                     help="nodes filename (default : nodes.json)")
 parser.add_argument("-b", "--blockchain", default=None, type=str,
                     help="blockchain filename (default : blockchain.json)")
+parser.add_argument("-bf", "--blocks", default=None, type=str,
+                    help="blocks foldername (default : blocks)")
+parser.add_argument("-bt", "--block_temp", default=None, type=str,
+                    help="block filename template (default : block)")
 parser.add_argument("-t", "--transactions", default=None, type=str,
                     help="transactions filename (default : transactions.json)")
 parser.add_argument("-w", "--wallets", default=None, type=str,
@@ -172,6 +186,7 @@ args = vars(parser.parse_args())
 settings = Client_Settings(
     ip_address=args["ip"], port=args["port"], directory=args["dir"],
     nodes_filename=args["nodes"], blockchain_filename=args["blockchain"],
+    blocks_foldername=args["blocks"], block_file_template=args["block_temp"],
     transactions_filename=args["transactions"], wallets_filename=args["wallets"],
     update_interval=args["upd_int"], known_nodes_limit=args["kn_limit"],
     main_dns_server_ip_address=args["dns_ip"], main_dns_server_port=args["dns_port"]
@@ -182,6 +197,7 @@ settings = Client_Settings(
 app = Flask(__name__)
 
 node_endpoints(app, settings)
+blockchain_endpoints(app, settings)
 
 setup_files()
 

@@ -78,12 +78,12 @@ def local_remove_node(settings: Node_Settings, json_node: dict):
 # general requests
 
 
-def general_connection_check(settings: Node_Settings, target_node: dict):
-    return requests.post("http://" + str(json_destruct_node(target_node)) + "/", json=settings.json_node).json()
+def general_connection_check(target_node: dict, opt_json_node: dict = {}):
+    return requests.post("http://" + str(json_destruct_node(target_node)) + "/", json=opt_json_node).json()
 
 
-def general_retrieve_nodes(settings: Node_Settings, target_node: dict):
-    return requests.get("http://" + str(json_destruct_node(target_node)) + "/nodes/", json=settings.json_node).json()
+def general_retrieve_nodes(target_node: dict, opt_json_node: dict = {}):
+    return requests.get("http://" + str(json_destruct_node(target_node)) + "/nodes/", json=opt_json_node).json()
 
 
 def general_add_node(target_node: dict, json_node: dict):

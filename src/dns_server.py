@@ -30,6 +30,7 @@ def setup_files():
 
 # Update Nodes Routine
 
+
 def update_nodes():
     time.sleep(1)
 
@@ -41,9 +42,10 @@ def update_nodes():
 
         for json_node in json_nodes:
             try:
-                general_connection_check(settings, json_node)
+                general_connection_check(json_node)
             except:
-                print("Node " + str(json_destruct_node(json_node)) + " is unreachable!")
+                print("Node " + str(json_destruct_node(json_node)) +
+                      " is unreachable!")
 
                 local_remove_node(settings, json_node)
 

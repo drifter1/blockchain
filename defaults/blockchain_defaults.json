@@ -1,0 +1,8 @@
+{
+    "name": "test_blockchain",
+    "height": -1,
+    "total_transactions": 0,
+    "total_addresses": 0,
+    "block_time": 300,
+    "block_reward" : 1.5
+}

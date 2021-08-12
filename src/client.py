@@ -10,6 +10,7 @@ from common.node import json_destruct_node
 from common.node_endpoints import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes, node_endpoints
 from common.blockchain import Blockchain, json_construct_blockchain_info
 from common.blockchain_endpoints import blockchain_endpoints
+from common.transaction_endpoints import transaction_endpoints
 
 # Setup Files Routine
 
@@ -115,7 +116,8 @@ def retrieve_known_nodes_connections():
 
 def contact_dns_server():
     try:
-        json_nodes = general_retrieve_nodes(settings.main_dns_server_json_node, settings.json_node)
+        json_nodes = general_retrieve_nodes(
+            settings.main_dns_server_json_node, settings.json_node)
 
         for json_node in json_nodes:
             local_add_node(settings, json_node)
@@ -198,6 +200,7 @@ app = Flask(__name__)
 
 node_endpoints(app, settings)
 blockchain_endpoints(app, settings)
+transaction_endpoints(app, settings)
 
 setup_files()
 

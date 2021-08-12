@@ -11,6 +11,7 @@ from common.node_endpoints import general_connection_check, general_retrieve_nod
 from common.blockchain import Blockchain, json_construct_blockchain_info
 from common.blockchain_endpoints import blockchain_endpoints
 from common.transaction_endpoints import transaction_endpoints
+from common.block_endpoints import block_endpoints
 
 # Setup Files Routine
 
@@ -201,6 +202,7 @@ app = Flask(__name__)
 node_endpoints(app, settings)
 blockchain_endpoints(app, settings)
 transaction_endpoints(app, settings)
+block_endpoints(app, settings)
 
 setup_files()
 

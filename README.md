@@ -23,8 +23,16 @@ Educational Python Implementation of a Blockchain
 | Blockchain Info     | PUT       | /blockchain/   | Blockchain Info   | Blockchain Info    |  Replace blockchain information      |
 
 ## Transaction Endpoints
-| Resource Type     | HTTP Verb | Endpoint          | Request (JSON)    | Response (JSON)    |  Description                         |
-| :--------------:  | :-----:   | :--------------:  | :---------------: | :--------------:   |  :--------------------------------   |
-| Transactions      | GET       | /transactions/    | -                 | Transactions       |  Retrieve unconfirmed transactions   |
-| Transactions      | POST      | /transactions/    | Transaction       | Transaction        |  Post new transaction                |
-| Transactions      | DELETE    | /transactions/    | Transaction       | Transaction        |  Cancel posted transaction           |
+| Resource Type     | HTTP Verb | Endpoint          | Request (JSON)    | Response (JSON)     |  Description                         |
+| :--------------:  | :-----:   | :--------------:  | :---------------: | :----------------:  |  :--------------------------------   |
+| Transactions      | GET       | /transactions/    | -                 | Transaction array   |  Retrieve unconfirmed transactions   |
+| Transactions      | POST      | /transactions/    | Transaction       | Transaction         |  Post new transaction                |
+| Transactions      | DELETE    | /transactions/    | Transaction       | Transaction         |  Cancel posted transaction           |
+
+## Block Endpoints
+| Resource Type       | HTTP Verb | Endpoint                        | Request (JSON)    | Response (JSON)    |  Description                                  |
+| :-----------------: | :-----:   | :----------------------------:  | :---------------: | :--------------:   |  :-----------------------------------------   |
+| Block               | GET       | /blocks/bid/                    | -                 | Block              |  Retrieve block by block id                   |
+| Block Transactions  | GET       | /blocks/bid/transactions/       | -                 | Transaction array  |  Retrieve block transactions by block id      |
+| Block Transaction   | GET       | /blocks/bid/transactions/tid/   | -                 | Transaction        |  Retrieve block transaction by bid-tid pair   |
+| Blocks              | POST      | /blocks/                        | Block             | Block              |  Create new block                             |

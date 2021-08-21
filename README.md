@@ -5,6 +5,8 @@ Educational Python Implementation of a Blockchain
 - [Python](https://www.python.org/)
 - [Flask](https://flask.palletsprojects.com/)
 - [Requests](https://docs.python-requests.org/)
+- [Mnemonic](https://pypi.org/project/mnemonic/0.20/) 
+- [ECDSA](https://pypi.org/project/ecdsa/)
 
 # REST API
 

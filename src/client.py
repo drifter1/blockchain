@@ -5,6 +5,9 @@ import time
 import json
 from argparse import ArgumentParser
 
+from binascii import unhexlify
+from hashlib import sha256
+
 from client.settings import Client_Settings
 from common.node import json_destruct_node
 from common.node_endpoints import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes, node_endpoints
@@ -12,6 +15,8 @@ from common.blockchain import Blockchain, json_construct_blockchain_info
 from common.blockchain_endpoints import blockchain_endpoints
 from common.transaction_endpoints import transaction_endpoints
 from common.block_endpoints import block_endpoints
+
+from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address, verify_signature
 
 # Setup Files Routine
 
@@ -59,14 +64,14 @@ def setup_files():
     else:
         print("File \"" + settings.transactions_path + "\" already exists!")
 
-    # wallets file
-    if not os.path.isfile(settings.wallets_path):
-        wallets_file = open(settings.wallets_path, "w")
-        wallets_file.write("[]")
-        wallets_file.close()
-        print("File \"" + settings.wallets_path + "\" created")
+    # wallet file
+    if not os.path.isfile(settings.wallet_path):
+        wallet_file = open(settings.wallet_path, "w")
+        json.dump(obj=json_construct_wallet(Wallet()), fp=wallet_file)
+        wallet_file.close()
+        print("File \"" + settings.wallet_path + "\" created")
     else:
-        print("File \"" + settings.wallets_path + "\" already exists!")
+        print("File \"" + settings.wallet_path + "\" already exists!")
 
 # Update Nodes Routines
 
@@ -174,8 +179,8 @@ parser.add_argument("-bt", "--block_temp", default=None, type=str,
                     help="block filename template (default : block)")
 parser.add_argument("-t", "--transactions", default=None, type=str,
                     help="transactions filename (default : transactions.json)")
-parser.add_argument("-w", "--wallets", default=None, type=str,
-                    help="wallets filename (default : wallets.json)")
+parser.add_argument("-w", "--wallet", default=None, type=str,
+                    help="wallet filename (default : wallet.json)")
 parser.add_argument("-u", "--upd_int", default=None,
                     type=int, help="update interval (default : 60)")
 parser.add_argument("-k", "--kn_limit", default=None, type=int,
@@ -190,7 +195,7 @@ settings = Client_Settings(
     ip_address=args["ip"], port=args["port"], directory=args["dir"],
     nodes_filename=args["nodes"], blockchain_filename=args["blockchain"],
     blocks_foldername=args["blocks"], block_file_template=args["block_temp"],
-    transactions_filename=args["transactions"], wallets_filename=args["wallets"],
+    transactions_filename=args["transactions"], wallet_filename=args["wallet"],
     update_interval=args["upd_int"], known_nodes_limit=args["kn_limit"],
     main_dns_server_ip_address=args["dns_ip"], main_dns_server_port=args["dns_port"]
 )
@@ -205,6 +210,24 @@ transaction_endpoints(app, settings)
 block_endpoints(app, settings)
 
 setup_files()
+
+# begin testing
+
+wallet_json = json.load(open(settings.wallet_path, "r"))
+
+data = bytearray([1, 2, 3, 4, 5])
+hash = unhexlify(sha256(data).hexdigest())
+
+signature = json_retrieve_private_key(wallet_json).sign(hash)
+
+address = json_retrieve_address(wallet_json)
+
+if verify_signature(signature, hash, address):
+    print("YES")
+else:
+    print("NO")
+
+# end testing
 
 _thread.start_new_thread(update_nodes, ())
 

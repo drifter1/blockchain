@@ -6,7 +6,7 @@ from common.settings import Node_Settings
 
 
 class Client_Settings(Node_Settings):
-    def __init__(self, ip_address=None, port=None, directory=None, nodes_filename=None, blockchain_filename=None, blocks_foldername=None, block_file_template=None, transactions_filename=None, wallets_filename=None, update_interval=None, known_nodes_limit=None, main_dns_server_ip_address=None, main_dns_server_port=None):
+    def __init__(self, ip_address=None, port=None, directory=None, nodes_filename=None, blockchain_filename=None, blocks_foldername=None, block_file_template=None, transactions_filename=None, wallet_filename=None, update_interval=None, known_nodes_limit=None, main_dns_server_ip_address=None, main_dns_server_port=None):
 
         # load defaults
         f = open("../defaults/client_defaults.json")
@@ -30,8 +30,8 @@ class Client_Settings(Node_Settings):
             block_file_template != None) else self.blocks_path + "/" + client_defaults["default_block_file_template"]
         self.transactions_path = self.directory + "/" + transactions_filename if (
             transactions_filename != None) else self.directory + "/" + client_defaults["default_transactions_filename"]
-        self.wallets_path = self.directory + "/" + wallets_filename if(
-            wallets_filename != None) else self.directory + "/" + client_defaults["default_wallets_filename"]
+        self.wallet_path = self.directory + "/" + wallet_filename if(
+            wallet_filename != None) else self.directory + "/" + client_defaults["default_wallet_filename"]
         self.update_interval = update_interval if (
             update_interval != None) else client_defaults["default_update_interval"]
         self.known_nodes_limit = known_nodes_limit if(

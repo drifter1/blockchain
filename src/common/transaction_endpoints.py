@@ -1,9 +1,11 @@
 from flask import Flask, request
 import json
 import requests
+from binascii import unhexlify
 
 from common.node import json_destruct_node
-from common.transaction import json_transaction_is_valid
+from common.transaction import json_destruct_transaction, json_transaction_is_valid, calculate_transaction_hash
+from common.wallet import verify_signature
 from client.settings import Client_Settings
 
 
@@ -20,7 +22,31 @@ def transaction_endpoints(app: Flask, settings: Client_Settings) -> None:
 
         json_transaction = request.get_json()
 
+        # check JSON format
         if json_transaction_is_valid(json_transaction):
+
+            # recalculate and check hash
+            try:
+                transaction = json_destruct_transaction(json_transaction)
+
+                calculate_transaction_hash(transaction)
+
+                if transaction.hash != json_transaction["hash"]:
+                    return {}
+            except:
+                return {}
+
+            # check signature
+            try:
+                signature = unhexlify(transaction.signature)
+                hash = unhexlify(transaction.hash)
+
+                if not verify_signature(signature, hash, transaction.sender):
+                    return {}
+            except:
+                return {}
+
+            # add transaction if not already in transactions
             json_transactions = local_retrieve_transactions(settings)
 
             if json_transaction not in json_transactions:
@@ -32,9 +58,10 @@ def transaction_endpoints(app: Flask, settings: Client_Settings) -> None:
                 return json.dumps(json_transaction)
             else:
                 return {}
+
         else:
             return {}
-
+    
     @app.route('/transactions/',  methods=['DELETE'])
     def cancel_transaction():
 

@@ -1,8 +1,11 @@
 import time
+from binascii import hexlify, unhexlify
+from hashlib import sha256
+from ecdsa.keys import SigningKey
 
 
 class Transaction:
-    def __init__(self, timestamp=None, sender=None, receiver=None, value=None, fee=None, hash=None, signature=None):
+    def __init__(self, timestamp: int = None, sender: str = None, receiver: str = None, value: float = None, fee: float = None, hash: str = None, signature: str = None):
 
         self.timestamp = timestamp if (timestamp != None) else int(time.time())
 
@@ -58,3 +61,21 @@ def json_transaction_is_valid(json_transaction: dict):
             return False
     except:
         return False
+
+
+def calculate_transaction_hash(transaction: Transaction):
+    transaction_bytes = hexlify(bytes(str(transaction.timestamp), 'ascii'))
+    transaction_bytes += hexlify(bytes(transaction.sender, 'ascii'))
+    transaction_bytes += hexlify(bytes(transaction.receiver, 'ascii'))
+    transaction_bytes += hexlify(bytes(str(transaction.value), 'ascii'))
+    transaction_bytes += hexlify(bytes(str(transaction.fee), 'ascii'))
+
+    hash = sha256(transaction_bytes).hexdigest()
+
+    transaction.hash = hash
+
+
+def sign_transaction(transaction: Transaction, private_key: SigningKey):
+    signature = private_key.sign(unhexlify(transaction.hash))
+
+    transaction.signature = hexlify(signature).decode('ascii')

@@ -5,18 +5,16 @@ import time
 import json
 from argparse import ArgumentParser
 
-from binascii import unhexlify
-from hashlib import sha256
-
 from client.settings import Client_Settings
 from common.node import json_destruct_node
 from common.node_endpoints import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes, node_endpoints
 from common.blockchain import Blockchain, json_construct_blockchain_info
 from common.blockchain_endpoints import blockchain_endpoints
-from common.transaction_endpoints import transaction_endpoints
+from common.transaction_endpoints import local_post_transaction, transaction_endpoints
 from common.block_endpoints import block_endpoints
 
-from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address, verify_signature
+from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address
+from common.transaction import Transaction, calculate_transaction_hash, json_construct_transaction, sign_transaction
 
 # Setup Files Routine
 
@@ -159,8 +157,32 @@ def update_nodes():
         # wait for a specific interval of time
         time.sleep(settings.update_interval)
 
+# '''
+
+
+def testing():
+    time.sleep(2)
+
+    wallet_json = json.load(open(settings.wallet_path, "r"))
+
+    address = json_retrieve_address(wallet_json)
+
+    transaction = Transaction(
+        sender=address,
+        receiver="0x140befb5d11ee54411653ae5ffd2a54a44085f4e",
+        value=2.5, fee=0.05)
+
+    calculate_transaction_hash(transaction)
+
+    private_key = json_retrieve_private_key(wallet_json)
+
+    sign_transaction(transaction, private_key)
+
+    local_post_transaction(settings, json_construct_transaction(transaction))
+# '''
 
 # client arguments
+
 
 parser = ArgumentParser()
 parser.add_argument("-i", "--ip", default=None, type=str,
@@ -211,25 +233,10 @@ block_endpoints(app, settings)
 
 setup_files()
 
-# begin testing
-
-wallet_json = json.load(open(settings.wallet_path, "r"))
-
-data = bytearray([1, 2, 3, 4, 5])
-hash = unhexlify(sha256(data).hexdigest())
-
-signature = json_retrieve_private_key(wallet_json).sign(hash)
-
-address = json_retrieve_address(wallet_json)
-
-if verify_signature(signature, hash, address):
-    print("YES")
-else:
-    print("NO")
-
-# end testing
-
 _thread.start_new_thread(update_nodes, ())
+
+# testing
+_thread.start_new_thread(testing, ())
 
 if __name__ == "__main__":
     app.run(host=settings.ip_address, port=settings.port)

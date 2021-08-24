@@ -11,10 +11,10 @@ from common.node_endpoints import general_connection_check, general_retrieve_nod
 from common.blockchain import Blockchain, json_construct_blockchain_info
 from common.blockchain_endpoints import blockchain_endpoints
 from common.transaction_endpoints import local_post_transaction, transaction_endpoints
-from common.block_endpoints import block_endpoints
-
+from common.block_endpoints import block_endpoints, local_create_block
 from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address
 from common.transaction import Transaction, calculate_transaction_hash, json_construct_transaction, sign_transaction
+from common.block import Block, calculate_block_hash, json_construct_block
 
 # Setup Files Routine
 
@@ -167,6 +167,8 @@ def testing():
 
     address = json_retrieve_address(wallet_json)
 
+    # create test transaction
+
     transaction = Transaction(
         sender=address,
         receiver="0x140befb5d11ee54411653ae5ffd2a54a44085f4e",
@@ -179,6 +181,19 @@ def testing():
     sign_transaction(transaction, private_key)
 
     local_post_transaction(settings, json_construct_transaction(transaction))
+
+    # create test block
+
+    block = Block(height=0, reward=2.5, reward_address=address,
+                  nonce="abcdef", transactions=[transaction],
+                  prev_hash="e700f00e79340d12a0919662274dd41952a27bac7d503053e5125a60594b807e")
+
+    calculate_block_hash(block)
+
+    json_block = json_construct_block(block)
+
+    local_create_block(settings, json_block)
+
 # '''
 
 # client arguments

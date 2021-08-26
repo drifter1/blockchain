@@ -76,7 +76,7 @@ def json_destruct_block_transactions(json_transactions: dict):
 
 def json_block_is_valid(json_block: dict):
     try:
-        if len(json_block) == 8:
+        if len(json_block) == 9:
             keys = json_block.keys()
             if ("timestamp" in keys) and ("height" in keys) and ("creator" in keys):
                 if ("reward" in keys) and ("fees" in keys) and ("nonce" in keys):

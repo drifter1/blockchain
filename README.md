@@ -13,8 +13,8 @@ Educational Python Implementation of a Blockchain
 ## Node Endpoints
 | Resource Type       | HTTP Verb | Endpoint  | Request (JSON) | Response (JSON) |  Description                          |
 | :----------------:  | :-----:   | :------:  | :-----------:  | :-----------:   |  :--------------------------------    |
-| Connection Check    | POST      | /         | Node           | Node            |  Check if node is reachable/online    |    
-| Nodes               | GET       | /nodes/   | Node           | Nodes array     |  Retrieve all known nodes             |
+| Connection Check    | POST      | /         | Node (opt.)    | Node            |  Check if node is reachable/online    |    
+| Nodes               | GET       | /nodes/   | Node (opt.)    | Nodes array     |  Retrieve all known nodes             |
 | Nodes               | POST      | /nodes/   | Node           | Nodes array     |  Add node to known nodes              |
 | Nodes               | DELETE    | /nodes/   | Node           | Nodes array     |  Remove node from known nodes         |
 

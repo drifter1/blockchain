@@ -21,10 +21,10 @@ def block_endpoints(app: Flask, settings: Client_Settings) -> None:
                 return {}
         except:
             return {}
-
+    
     @app.route('/blocks/<int:bid>/transactions/', methods=['GET'])
     def retrieve_block_transactions(bid):
-        json_block = local_retrieve_block(settings, bid)
+        json_block : dict = local_retrieve_block(settings, bid)
 
         if json_block_is_valid(json_block):
             if "transactions" in json_block.keys():

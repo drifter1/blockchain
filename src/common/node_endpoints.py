@@ -34,7 +34,7 @@ def node_endpoints(app: Flask, settings: Node_Settings) -> None:
 
     @app.route('/nodes/', methods=['POST'])
     def add_node():
-        json_nodes = json.load(open(settings.nodes_path, "r"))
+        json_nodes: list = json.load(open(settings.nodes_path, "r"))
 
         json_node = request.get_json()
 
@@ -49,7 +49,7 @@ def node_endpoints(app: Flask, settings: Node_Settings) -> None:
 
     @app.route('/nodes/', methods=['DELETE'])
     def remove_node():
-        json_nodes = json.load(open(settings.nodes_path, "r"))
+        json_nodes: list = json.load(open(settings.nodes_path, "r"))
 
         json_node = request.get_json()
 

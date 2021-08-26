@@ -44,7 +44,7 @@ def generate_public_key(private_key):
 
     sk = SigningKey.from_string(string=private_key, curve=SECP256k1)
 
-    vk = sk.verifying_key
+    vk: VerifyingKey = sk.verifying_key
 
     return hexlify(vk.to_string()).decode('ascii')
 

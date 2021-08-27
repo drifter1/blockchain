@@ -21,10 +21,10 @@ def block_endpoints(app: Flask, settings: Client_Settings) -> None:
                 return {}
         except:
             return {}
-    
+
     @app.route('/blocks/<int:bid>/transactions/', methods=['GET'])
     def retrieve_block_transactions(bid):
-        json_block : dict = local_retrieve_block(settings, bid)
+        json_block: dict = local_retrieve_block(settings, bid)
 
         if json_block_is_valid(json_block):
             if "transactions" in json_block.keys():
@@ -33,13 +33,51 @@ def block_endpoints(app: Flask, settings: Client_Settings) -> None:
                 return {}
         else:
             return {}
-    
+
     @app.route('/blocks/<int:bid>/transactions/<int:tid>/', methods=['GET'])
     def retrieve_block_transaction(bid, tid):
         json_transactions = local_retrieve_block_transactions(settings, bid)
 
         try:
             return json.dumps(json_transactions[tid])
+        except:
+            return {}
+
+    @app.route('/blocks/<int:bid>/transactions/<int:tid>/inputs/', methods=['GET'])
+    def retrieve_block_transaction_inputs(bid, tid):
+        json_transaction = local_retrieve_block_transaction(settings, bid, tid)
+
+        try:
+            return json.dumps(json_transaction["inputs"])
+        except:
+            return {}
+
+    @app.route('/blocks/<int:bid>/transactions/<int:tid>/inputs/<int:iid>/', methods=['GET'])
+    def retrieve_block_transaction_input(bid, tid, iid):
+        json_transaction_inputs = local_retrieve_block_transaction_inputs(
+            settings, bid, tid)
+
+        try:
+            return json.dumps(json_transaction_inputs[iid])
+        except:
+            return {}
+
+    @app.route('/blocks/<int:bid>/transactions/<int:tid>/outputs/', methods=['GET'])
+    def retrieve_block_transaction_outputs(bid, tid):
+        json_transaction = local_retrieve_block_transaction(settings, bid, tid)
+
+        try:
+            return json.dumps(json_transaction["outputs"])
+        except:
+            return {}
+
+    @app.route('/blocks/<int:bid>/transactions/<int:tid>/outputs/<int:oid>/', methods=['GET'])
+    def retrieve_block_transaction_output(bid, tid, oid):
+        json_transaction_outputs = local_retrieve_block_transaction_outputs(
+            settings, bid, tid)
+
+        try:
+            return json.dumps(json_transaction_outputs[oid])
         except:
             return {}
 
@@ -89,6 +127,22 @@ def local_retrieve_block_transaction(settings: Client_Settings, bid: int, tid: i
     return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/").json()
 
 
+def local_retrieve_block_transaction_inputs(settings: Client_Settings, bid: int, tid: int):
+    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/inputs/").json()
+
+
+def local_retrieve_block_transaction_input(settings: Client_Settings, bid: int, tid: int, iid: int):
+    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/inputs/" + str(iid) + "/").json()
+
+
+def local_retrieve_block_transaction_outputs(settings: Client_Settings, bid: int, tid: int):
+    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/outputs/").json()
+
+
+def local_retrieve_block_transaction_output(settings: Client_Settings, bid: int, tid: int, oid: int):
+    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/outputs/" + str(oid) + "/").json()
+
+
 def local_create_block(settings: Client_Settings, json_block: dict):
     return requests.post("http://" + str(json_destruct_node(settings.json_node)) + "/blocks/", json=json_block).json()
 
@@ -105,6 +159,22 @@ def general_retrieve_block_transactions(target_node: dict, bid: int):
 
 def general_retrieve_block_transaction(target_node: dict, bid: int, tid: int):
     return requests.get("http://" + str(json_destruct_node(target_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/").json()
+
+
+def general_retrieve_block_transaction_inputs(target_node: dict, bid: int, tid: int):
+    return requests.get("http://" + str(json_destruct_node(target_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/inputs/").json()
+
+
+def general_retrieve_block_transaction_input(target_node: dict, bid: int, tid: int, iid: int):
+    return requests.get("http://" + str(json_destruct_node(target_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/inputs/" + str(iid) + "/").json()
+
+
+def general_retrieve_block_transaction_outputs(target_node: dict, bid: int, tid: int):
+    return requests.get("http://" + str(json_destruct_node(target_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/outputs/").json()
+
+
+def general_retrieve_block_transaction_output(target_node: dict, bid: int, tid: int, oid: int):
+    return requests.get("http://" + str(json_destruct_node(target_node)) + "/blocks/" + str(bid) + "/transactions/" + str(tid) + "/outputs/" + str(oid) + "/").json()
 
 
 def general_create_block(target_node: dict, json_block: dict):

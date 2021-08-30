@@ -42,3 +42,13 @@ Educational Python Implementation of a Blockchain
 | Block Transaction Outputs     | GET       | /blocks/bid/transactions/tid/outputs/       | -                 | Transaction output array   |  Retrieve block transaction outputs by bid-tid pair      |
 | Block Transaction Output      | GET       | /blocks/bid/transactions/tid/outputs/oid/   | -                 | Transaction output         |  Retrieve block transaction output by bid-tid-oid        |
 | Blocks                        | POST      | /blocks/                                    | Block             | Block                      |  Create new block                                        |
+
+## UTXO Endpoints
+| Resource Type       | HTTP Verb | Endpoint                                  | Request (JSON)    | Response (JSON)    |  Description                                   |
+| :-----------------: | :-----:   | :--------------------------------------:  | :---------------: | :--------------:   |  :------------------------------------------   |
+| UTXO                | GET       | /utxo/address/                            | -                 | UTXO               |  Retrieve utxo by address                      |
+| UTXO Outputs        | GET       | /utxo/address/outputs/                    | -                 | UTXO Output array  |  Retrieve utxo outputs by address              |
+| UTXO Output         | GET       | /utxo/address/outputs/transaction_hash/   | -                 | UTXO Output        |  Retrieve utxo output by address-hash pair     |
+| UTXO                | POST      | /utxo/address/                            | UTXO (opt.)       | UTXO               |  Create utxo of address                        |
+| UTXO Output         | POST      | /utxo/address/outputs/                    | UTXO Output       | UTXO Output        |  Add utxo output to utxo of address            |
+| UTXO Output         | DELETE    | /utxo/address/outputs/                    | UTXO Output       | UTXO Output        |  Remove utxo output from utxo of address       |

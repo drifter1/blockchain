@@ -15,6 +15,8 @@ from common.block_endpoints import block_endpoints, local_create_block
 from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address
 from common.transaction import Input, Output, Transaction, calculate_output_hash, calculate_transaction_hash, json_construct_transaction, sign_input
 from common.block import Block, calculate_block_hash, json_construct_block
+from common.utxo_endpoints import local_add_utxo_output, local_create_utxo, local_remove_utxo_output, utxo_endpoints
+from common.utxo import UTXO_Output, json_construct_utxo_output
 
 # Setup Files Routine
 
@@ -70,6 +72,13 @@ def setup_files():
         print("File \"" + settings.wallet_path + "\" created")
     else:
         print("File \"" + settings.wallet_path + "\" already exists!")
+
+    # utxo folder
+    if not os.path.isdir(settings.utxo_path):
+        os.mkdir(settings.utxo_path)
+        print("Folder \"" + settings.utxo_path + "\" created")
+    else:
+        print("Folder \"" + settings.utxo_path + "\" already exists!")
 
 # Update Nodes Routines
 
@@ -168,25 +177,88 @@ def testing():
     address = json_retrieve_address(wallet_json)
     private_key = json_retrieve_private_key(wallet_json)
 
+    # create reward transaction
+
+    reward_input = Input(
+        output_value=2.5
+    )
+
+    reward_output = Output(
+        address=address,
+        value=2.5
+    )
+    calculate_output_hash(reward_output)
+
+    reward_transaction = Transaction(
+        inputs=[reward_input],
+        outputs=[reward_output],
+        total_input=2.5,
+        total_output=2.5,
+        fee=0
+    )
+    calculate_transaction_hash(reward_transaction)
+
+    # create block 0
+
+    block0 = Block(height=0, creator=address, reward=2.5, fees=0,
+                   nonce="abcdef", transactions=[reward_transaction])
+
+    calculate_block_hash(block0)
+
+    json_block0 = json_construct_block(block0)
+
+    local_create_block(settings, json_block0)
+
+    # create utxo for wallet address
+
+    local_create_utxo(settings, address)
+
+    # update utxo for wallet address based on block 0
+
+    utxo_reward_output = UTXO_Output(
+        block_height=block0.height,
+        transaction_hash=reward_transaction.hash,
+        transaction_index=0,
+        output_index=0
+    )
+
+    json_utxo_reward_output = json_construct_utxo_output(utxo_reward_output)
+
+    local_add_utxo_output(settings, address, json_utxo_reward_output)
+
+    time.sleep(15)
+
+    # create reward transaction 2
+
+    reward_input2 = Input(
+        output_value=2.5
+    )
+
+    reward_output2 = Output(
+        address=address,
+        value=2.5
+    )
+    calculate_output_hash(reward_output2)
+
+    reward_transaction2 = Transaction(
+        inputs=[reward_input2],
+        outputs=[reward_output2],
+        total_input=2.5,
+        total_output=2.5,
+        fee=0
+    )
+    calculate_transaction_hash(reward_transaction2)
+
     # create test transaction
 
     input0 = Input(
-        transaction_hash="e700f00e79340d12a0919662274dd41952a27bac7d503053e5125a60594b807e",
+        transaction_hash=reward_transaction.hash,
         output_index=0,
         output_address=address,
-        output_value=1.5,
-        output_hash="0531df66b5b206dab6b46ab26d2ff7bb9eee84ef55aa5e7a8681d34d6bbcaa22",
+        output_value=reward_output.value,
+        output_hash=reward_output.hash,
     )
     sign_input(input0, private_key)
-
-    input1 = Input(
-        transaction_hash="4aa4b672c642ebec49ced6b37a6f4dcdb3c685930de49f1cd75d7a85c8e3323e",
-        output_index=2,
-        output_address=address,
-        output_value=1,
-        output_hash="b0015748432c4be4c2487567bf9d5341590bbe0255843a3ecda5d0f76456d697",
-    )
-    sign_input(input1, private_key)
 
     output0 = Output(
         index=0,
@@ -210,7 +282,7 @@ def testing():
     calculate_output_hash(output2)
 
     transaction = Transaction(
-        inputs=[input0, input1],
+        inputs=[input0],
         outputs=[output0, output1, output2],
         total_input=2.5,
         total_output=2.499,
@@ -222,43 +294,47 @@ def testing():
 
     local_post_transaction(settings, json_transaction)
 
-    # create test block
+    # create block 1
 
-    reward_input = Input(
-        output_value=2.501
+    block1 = Block(height=1, creator=address, reward=2.5, fees=0.001,
+                   nonce="123456", transactions=[reward_transaction2, transaction])
+
+    calculate_block_hash(block1)
+
+    json_block1 = json_construct_block(block1)
+
+    local_create_block(settings, json_block1)
+
+    # update utxo for wallet address based on block 1
+
+    local_remove_utxo_output(settings, address, json_utxo_reward_output)
+
+    utxo_output0 = UTXO_Output(
+        block_height=block1.height,
+        transaction_hash=reward_transaction2.hash,
+        transaction_index=0,
+        output_index=0
     )
 
-    reward_output = Output(
-        address=address,
-        value=2.501
+    json_utxo_output0 = json_construct_utxo_output(utxo_output0)
+
+    local_add_utxo_output(settings, address, json_utxo_output0)
+
+    utxo_output1 = UTXO_Output(
+        block_height=block1.height,
+        transaction_hash=transaction.hash,
+        transaction_index=1,
+        output_index=2
     )
-    calculate_output_hash(reward_output)
 
-    reward_transaction = Transaction(
-        inputs=[reward_input],
-        outputs=[reward_output],
-        total_input=2.501,
-        total_output=2.501,
-        fee=0
-    )
-    calculate_transaction_hash(reward_transaction)
+    json_utxo_output1 = json_construct_utxo_output(utxo_output1)
 
-    block = Block(height=0, creator=address, reward=2.5, fees=0.001,
-                  nonce="abcdef", transactions=[reward_transaction, transaction],
-                  prev_hash="e700f00e79340d12a0919662274dd41952a27bac7d503053e5125a60594b807e")
-
-    calculate_block_hash(block)
-
-    json_block = json_construct_block(block)
-
-    local_create_block(settings, json_block)
+    local_add_utxo_output(settings, address, json_utxo_output1)
 
 
 # '''
 
 # client arguments
-
-
 parser = ArgumentParser()
 parser.add_argument("-i", "--ip", default=None, type=str,
                     help="ip address (default : 127.0.0.1)")
@@ -278,6 +354,10 @@ parser.add_argument("-t", "--transactions", default=None, type=str,
                     help="transactions filename (default : transactions.json)")
 parser.add_argument("-w", "--wallet", default=None, type=str,
                     help="wallet filename (default : wallet.json)")
+parser.add_argument("-ut", "--utxo", default=None, type=str,
+                    help="utxo foldername (default : utxo)")
+parser.add_argument("-utf", "--utxo_file", default=None, type=str,
+                    help="utxo filename template (default : utxo_)")
 parser.add_argument("-u", "--upd_int", default=None,
                     type=int, help="update interval (default : 60)")
 parser.add_argument("-k", "--kn_limit", default=None, type=int,
@@ -293,6 +373,7 @@ settings = Client_Settings(
     nodes_filename=args["nodes"], blockchain_filename=args["blockchain"],
     blocks_foldername=args["blocks"], block_file_template=args["block_temp"],
     transactions_filename=args["transactions"], wallet_filename=args["wallet"],
+    utxo_foldername=args["utxo"], utxo_file_template=args["utxo_file"],
     update_interval=args["upd_int"], known_nodes_limit=args["kn_limit"],
     main_dns_server_ip_address=args["dns_ip"], main_dns_server_port=args["dns_port"]
 )
@@ -305,6 +386,7 @@ node_endpoints(app, settings)
 blockchain_endpoints(app, settings)
 transaction_endpoints(app, settings)
 block_endpoints(app, settings)
+utxo_endpoints(app, settings)
 
 setup_files()
 

@@ -9,6 +9,8 @@
     "default_block_file_template": "block",
     "default_transactions_filename": "transactions.json",
     "default_wallet_filename": "wallet.json",
+    "default_utxo_foldername" : "utxo",
+    "default_utxo_file_template" : "utxo_",
     "default_update_interval": 60,
     "default_known_nodes_limit" : 10,
     "main_dns_server_ip_address" : "127.0.0.1",

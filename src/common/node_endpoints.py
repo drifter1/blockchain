@@ -1,9 +1,9 @@
 from flask import Flask, request
 import json
-import requests
 
-from common.node import json_node_is_valid, json_destruct_node, json_compare_nodes
+from common.node import json_node_is_valid, json_compare_nodes
 from common.settings import Node_Settings
+from common.node_requests import local_add_node
 
 
 def node_endpoints(app: Flask, settings: Node_Settings) -> None:
@@ -60,35 +60,3 @@ def node_endpoints(app: Flask, settings: Node_Settings) -> None:
             json.dump(obj=json_nodes, fp=open(settings.nodes_path, "w"))
 
         return json.dumps(json_nodes)
-
-# local requests
-
-
-def local_retrieve_nodes(settings: Node_Settings):
-    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/nodes/", json=settings.json_node).json()
-
-
-def local_add_node(settings: Node_Settings, json_node: dict):
-    return requests.post("http://" + str(json_destruct_node(settings.json_node)) + "/nodes/", json=json_node).json()
-
-
-def local_remove_node(settings: Node_Settings, json_node: dict):
-    return requests.delete("http://" + str(json_destruct_node(settings.json_node)) + "/nodes/", json=json_node).json()
-
-# general requests
-
-
-def general_connection_check(target_node: dict, opt_json_node: dict = {}):
-    return requests.post("http://" + str(json_destruct_node(target_node)) + "/", json=opt_json_node).json()
-
-
-def general_retrieve_nodes(target_node: dict, opt_json_node: dict = {}):
-    return requests.get("http://" + str(json_destruct_node(target_node)) + "/nodes/", json=opt_json_node).json()
-
-
-def general_add_node(target_node: dict, json_node: dict):
-    return requests.post("http://" + str(json_destruct_node(target_node)) + "/nodes/", json=json_node).json()
-
-
-def general_remove_node(target_node: dict, json_node: dict):
-    return requests.delete("http://" + json_destruct_node(target_node) + "/nodes/", json=json_node).json()

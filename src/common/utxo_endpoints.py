@@ -1,13 +1,12 @@
 from flask import Flask, request
 import json
-import requests
 
-from common.node import json_destruct_node
 from common.utxo import UTXO, json_construct_utxo, json_destruct_utxo_output, json_utxo_is_valid, json_utxo_output_is_valid
 from client.settings import Client_Settings
-
-from common.block_endpoints import local_retrieve_block_transaction_output
 from common.transaction import json_destruct_output
+
+from common.block_requests import local_retrieve_block_transaction_output
+from common.utxo_requests import local_create_utxo, local_retrieve_utxo_address, local_retrieve_utxo_outputs_of_address
 
 
 def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
@@ -143,62 +142,8 @@ def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
         else:
             return {}
 
-
-# local requests
-
-
-def local_retrieve_utxo_address(settings: Client_Settings, address: str):
-    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/").json()
-
-
-def local_retrieve_utxo_outputs_of_address(settings: Client_Settings, address: str):
-    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/outputs/").json()
-
-
-def local_retrieve_utxo_output_from_address_and_transaction_hash(settings: Client_Settings, address: str, transaction_hash: str):
-    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/outputs/" + transaction_hash + "/").json()
-
-
-def local_create_utxo(settings: Client_Settings, address: str, opt_json_utxo: dict = {}):
-    return requests.post("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/", json=opt_json_utxo).json()
-
-
-def local_add_utxo_output(settings: Client_Settings, address: str, json_utxo_output: dict):
-    return requests.post("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/outputs/", json=json_utxo_output).json()
-
-
-def local_remove_utxo_output(settings: Client_Settings, address: str, json_utxo_output: dict):
-    return requests.delete("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/outputs/", json=json_utxo_output).json()
-
-
-# general requests
-
-
-def general_retrieve_utxo_address(target_node: dict, address: str):
-    return requests.get("http://" + str(json_destruct_node(target_node)) + "/blocks/" + address + "/").json()
-
-
-def general_retrieve_utxo_outputs_of_address(target_node: dict, address: str):
-    return requests.get("http://" + str(json_destruct_node(target_node)) + "/blocks/" + address + "/outputs/").json()
-
-
-def general_retrieve_utxo_output_from_address_and_transaction_hash(target_node: dict, address: str, transaction_hash: str):
-    return requests.get("http://" + str(json_destruct_node(target_node)) + "/blocks/" + address + "/outputs/" + transaction_hash + "/").json()
-
-
-def general_create_utxo(target_node: dict, address: str, opt_json_utxo: dict = {}):
-    return requests.post("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/", json=opt_json_utxo).json()
-
-
-def general_add_utxo_output(target_node: dict, address: str, json_utxo_output: dict):
-    return requests.post("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/outputs/", json=json_utxo_output).json()
-
-
-def general_remove_utxo_output(target_node: dict, address: str, json_utxo_output: dict):
-    return requests.delete("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/outputs/", json=json_utxo_output).json()
-
-
 # check if utxo output is valid using block transaction output retrieval request
+
 
 def check_utxo_output_in_block(settings: Client_Settings, address: str, json_utxo_output: dict):
     utxo_output = json_destruct_utxo_output(json_utxo_output)

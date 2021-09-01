@@ -7,16 +7,20 @@ from argparse import ArgumentParser
 
 from client.settings import Client_Settings
 from common.node import json_destruct_node
-from common.node_endpoints import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes, node_endpoints
+from common.node_endpoints import node_endpoints
+from common.node_requests import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes
 from common.blockchain import Blockchain, json_construct_blockchain_info
 from common.blockchain_endpoints import blockchain_endpoints
-from common.transaction_endpoints import local_post_transaction, transaction_endpoints
-from common.block_endpoints import block_endpoints, local_create_block
-from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address
 from common.transaction import Input, Output, Transaction, calculate_output_hash, calculate_transaction_hash, json_construct_transaction, sign_input
+from common.transaction_endpoints import transaction_endpoints
+from common.transaction_requests import local_post_transaction
 from common.block import Block, calculate_block_hash, json_construct_block
-from common.utxo_endpoints import local_add_utxo_output, local_create_utxo, local_remove_utxo_output, utxo_endpoints
+from common.block_endpoints import block_endpoints
+from common.block_requests import local_create_block
+from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address
 from common.utxo import UTXO_Output, json_construct_utxo_output
+from common.utxo_endpoints import utxo_endpoints
+from common.utxo_requests import local_add_utxo_output, local_create_utxo, local_remove_utxo_output
 
 # Setup Files Routine
 

@@ -2,10 +2,13 @@ from flask import Flask, request
 import json
 from binascii import unhexlify
 
-from common.transaction import Input, Output, json_destruct_transaction, json_transaction_is_valid, calculate_transaction_hash
+from common.transaction import Input, Output, json_destruct_input, json_destruct_transaction, json_transaction_is_valid, calculate_transaction_hash
+from common.transaction_requests import local_retrieve_transactions
 from common.wallet import verify_signature
 from client.settings import Client_Settings
-from common.transaction_requests import local_retrieve_transactions
+
+from common.utxo import json_destruct_utxo_output, json_utxo_output_is_valid
+from common.utxo_requests import local_retrieve_utxo_output_from_address_and_transaction_hash
 
 
 def transaction_endpoints(app: Flask, settings: Client_Settings) -> None:
@@ -23,6 +26,13 @@ def transaction_endpoints(app: Flask, settings: Client_Settings) -> None:
 
         # check JSON format
         if json_transaction_is_valid(json_transaction):
+
+            # check if inputs exist in utxo
+            json_transaction_inputs = json_transaction["inputs"]
+
+            for json_transaction_input in json_transaction_inputs:
+                if not check_transaction_input_in_utxo(settings, json_transaction_input):
+                    return {}
 
             transaction = json_destruct_transaction(json_transaction)
 
@@ -86,7 +96,7 @@ def transaction_endpoints(app: Flask, settings: Client_Settings) -> None:
             return {}
 
     @app.route('/transactions/',  methods=['DELETE'])
-    def cancel_transaction():
+    def remove_transaction():
 
         json_transaction = request.get_json()
 
@@ -105,3 +115,23 @@ def transaction_endpoints(app: Flask, settings: Client_Settings) -> None:
                 return {}
         else:
             return {}
+
+# check if transaction input is valid using utxo output retrieval request
+
+
+def check_transaction_input_in_utxo(settings: Client_Settings, json_transaction_input: dict):
+    try:
+        transaction_input = json_destruct_input(json_transaction_input)
+    except:
+        return False
+
+    json_utxo_output = local_retrieve_utxo_output_from_address_and_transaction_hash(
+        settings, transaction_input.output_address, transaction_input.transaction_hash)
+
+    if not json_utxo_output_is_valid(json_utxo_output):
+        return False
+
+    utxo_output = json_destruct_utxo_output(json_utxo_output)
+
+    if (utxo_output.output_index == transaction_input.output_index):
+        return True

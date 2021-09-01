@@ -1,9 +1,14 @@
 from flask import Flask, request
 import json
 
-from common.block import calculate_block_hash, json_block_is_valid, json_destruct_block
 from client.settings import Client_Settings
+from common.block import calculate_block_hash, json_block_is_valid, json_destruct_block
+from common.transaction import json_destruct_input
+from common.utxo import UTXO_Output, json_utxo_output_is_valid, json_destruct_utxo_output, json_construct_utxo_output
+
 from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
+from common.transaction_requests import local_remove_transaction, local_retrieve_transactions
+from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
 
 
 def block_endpoints(app: Flask, settings: Client_Settings) -> None:
@@ -98,14 +103,123 @@ def block_endpoints(app: Flask, settings: Client_Settings) -> None:
 
             except:
                 return {}
+            
+            # check transactions
+            json_transactions = json_block["transactions"]
 
-            # missing checks for validity, consensus etc.
+            json_unconfirmed_transactions = local_retrieve_transactions(
+                settings)
+
+            for json_transaction in json_transactions:
+
+                # don't check coinbase transaction
+                if json_transaction["inputs"][0]["output_address"] == "0x0000000000000000000000000000000000000000":
+                    continue
+
+                # check if transaction in unconfirmed transactions array
+                if json_transaction not in json_unconfirmed_transactions:
+                    return {}
+
+                json_inputs = json_transaction["inputs"]
+
+                # keep track of referenced outputs
+                json_checked_inputs = []
+
+                # check if inputs are in utxo
+                for json_input in json_inputs:
+
+                    if not check_transaction_input_in_utxo(settings, json_input):
+                        return {}
+
+                    if json_input in json_checked_inputs:
+                        return {}
+
+                    json_checked_inputs.append(json_input)
+
+            # missing consensus
 
             # create block
             json.dump(obj=json_block, fp=open(
                 settings.block_file_path + str(json_block["height"]) + ".json", "w"))
 
+            # remove included transactions from unconfirmed transactions
+            for json_transaction in json_block["transactions"]:
+
+                # skip coinbase transaction
+                if json_transaction["inputs"][0]["output_address"] == "0x0000000000000000000000000000000000000000":
+                    continue
+
+                local_remove_transaction(settings, json_transaction)
+
+            # update utxo's
+            transaction_index = 0
+            for json_transaction in json_block["transactions"]:
+
+                # coinbase transaction
+                if transaction_index == 0:
+                    utxo_reward_output = UTXO_Output(
+                        block_height=json_block["height"],
+                        transaction_hash=json_transaction["hash"],
+                        transaction_index=0,
+                        output_index=0
+                    )
+
+                    json_utxo_reward_output = json_construct_utxo_output(
+                        utxo_reward_output)
+
+                    local_add_utxo_output(
+                        settings, json_transaction["outputs"][0]["address"], json_utxo_reward_output)
+
+                    transaction_index += 1
+                    continue
+
+                # remove spent outputs
+
+                for json_input in json_transaction["inputs"]:
+                    json_utxo_output = local_retrieve_utxo_output_from_address_and_transaction_hash(
+                        settings, json_input["output_address"], json_input["transaction_hash"])
+
+                    local_remove_utxo_output(
+                        settings, json_input["output_address"], json_utxo_output)
+
+                # add spendable outputs
+
+                for json_output in json_transaction["outputs"]:
+                    utxo_output = UTXO_Output(
+                        block_height=json_block["height"],
+                        transaction_hash=json_transaction["hash"],
+                        transaction_index=transaction_index,
+                        output_index=json_output["index"]
+                    )
+
+                    json_utxo_output = json_construct_utxo_output(utxo_output)
+
+                    local_add_utxo_output(
+                        settings, json_output["address"], json_utxo_output)
+
+                transaction_index += 1
+
             return json.dumps(json_block)
 
         else:
             return {}
+
+# check if transaction input is valid using utxo output retrieval request
+
+
+def check_transaction_input_in_utxo(settings: Client_Settings, json_transaction_input: dict):
+    try:
+        transaction_input = json_destruct_input(json_transaction_input)
+    except:
+        return False
+
+    json_utxo_output = local_retrieve_utxo_output_from_address_and_transaction_hash(
+        settings, transaction_input.output_address, transaction_input.transaction_hash)
+
+    if not json_utxo_output_is_valid(json_utxo_output):
+        return False
+
+    utxo_output = json_destruct_utxo_output(json_utxo_output)
+
+    if (utxo_output.output_index == transaction_input.output_index):
+        return True

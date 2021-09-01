@@ -6,7 +6,7 @@ from client.settings import Client_Settings
 from common.transaction import json_destruct_output
 
 from common.block_requests import local_retrieve_block_transaction_output
-from common.utxo_requests import local_create_utxo, local_retrieve_utxo_address, local_retrieve_utxo_outputs_of_address
+from common.utxo_requests import local_retrieve_utxo_address, local_retrieve_utxo_outputs_of_address, local_create_utxo
 
 
 def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
@@ -89,7 +89,10 @@ def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
         if json_utxo_output_is_valid(json_utxo_output):
 
             # check if output truly exists
-            if not check_utxo_output_in_block(settings, address, json_utxo_output):
+            output_exists, transaction_output = check_utxo_output_in_block(
+                settings, address, json_utxo_output)
+
+            if not output_exists:
                 return {}
 
             # retrieve utxo for address
@@ -107,6 +110,7 @@ def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
 
                 json_utxo["utxo_outputs"] = json_utxo_outputs
                 json_utxo["last_block_included"] = json_utxo_output["block_height"]
+                json_utxo["balance"] += transaction_output.value
 
                 local_create_utxo(settings, address, json_utxo)
 
@@ -127,12 +131,19 @@ def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
             if not json_utxo_is_valid(json_utxo):
                 return {}
 
+            output_exists, transaction_output = check_utxo_output_in_block(
+                settings, address, json_utxo_output)
+
+            if not output_exists:
+                return {}
+
             json_utxo_outputs: list = json_utxo["utxo_outputs"]
 
             if json_utxo_output in json_utxo_outputs:
                 json_utxo_outputs.remove(json_utxo_output)
 
                 json_utxo["utxo_outputs"] = json_utxo_outputs
+                json_utxo["balance"] -= transaction_output.value
 
                 local_create_utxo(settings, address, json_utxo)
 
@@ -142,8 +153,8 @@ def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
         else:
             return {}
 
-# check if utxo output is valid using block transaction output retrieval request
 
+# check if utxo output is valid using block transaction output retrieval request
 
 def check_utxo_output_in_block(settings: Client_Settings, address: str, json_utxo_output: dict):
     utxo_output = json_destruct_utxo_output(json_utxo_output)
@@ -152,9 +163,9 @@ def check_utxo_output_in_block(settings: Client_Settings, address: str, json_utx
         settings, utxo_output.block_height, utxo_output.transaction_index, utxo_output.output_index)
 
     if json_transaction_output == {}:
-        return False
+        return False, None
 
     transaction_output = json_destruct_output(json_transaction_output)
 
     if transaction_output.address == address:
-        return True
+        return True, transaction_output

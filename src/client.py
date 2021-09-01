@@ -18,9 +18,7 @@ from common.block import Block, calculate_block_hash, json_construct_block
 from common.block_endpoints import block_endpoints
 from common.block_requests import local_create_block
 from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address
-from common.utxo import UTXO_Output, json_construct_utxo_output
 from common.utxo_endpoints import utxo_endpoints
-from common.utxo_requests import local_add_utxo_output, local_create_utxo, local_remove_utxo_output
 
 # Setup Files Routine
 
@@ -213,24 +211,7 @@ def testing():
 
     local_create_block(settings, json_block0)
 
-    # create utxo for wallet address
-
-    local_create_utxo(settings, address)
-
-    # update utxo for wallet address based on block 0
-
-    utxo_reward_output = UTXO_Output(
-        block_height=block0.height,
-        transaction_hash=reward_transaction.hash,
-        transaction_index=0,
-        output_index=0
-    )
-
-    json_utxo_reward_output = json_construct_utxo_output(utxo_reward_output)
-
-    local_add_utxo_output(settings, address, json_utxo_reward_output)
-
-    time.sleep(15)
+    time.sleep(2)
 
     # create reward transaction 2
 
@@ -253,7 +234,7 @@ def testing():
     )
     calculate_transaction_hash(reward_transaction2)
 
-    # create test transaction
+    # create and post test transaction
 
     input0 = Input(
         transaction_hash=reward_transaction.hash,
@@ -298,6 +279,8 @@ def testing():
 
     local_post_transaction(settings, json_transaction)
 
+    time.sleep(2)
+
     # create block 1
 
     block1 = Block(height=1, creator=address, reward=2.5, fees=0.001,
@@ -309,34 +292,8 @@ def testing():
 
     local_create_block(settings, json_block1)
 
-    # update utxo for wallet address based on block 1
-
-    local_remove_utxo_output(settings, address, json_utxo_reward_output)
-
-    utxo_output0 = UTXO_Output(
-        block_height=block1.height,
-        transaction_hash=reward_transaction2.hash,
-        transaction_index=0,
-        output_index=0
-    )
-
-    json_utxo_output0 = json_construct_utxo_output(utxo_output0)
-
-    local_add_utxo_output(settings, address, json_utxo_output0)
-
-    utxo_output1 = UTXO_Output(
-        block_height=block1.height,
-        transaction_hash=transaction.hash,
-        transaction_index=1,
-        output_index=2
-    )
-
-    json_utxo_output1 = json_construct_utxo_output(utxo_output1)
-
-    local_add_utxo_output(settings, address, json_utxo_output1)
-
-
 # '''
+
 
 # client arguments
 parser = ArgumentParser()

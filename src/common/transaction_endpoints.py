@@ -5,13 +5,13 @@ from binascii import unhexlify
 from common.transaction import Input, Output, json_destruct_input, json_destruct_transaction, json_transaction_is_valid, calculate_transaction_hash
 from common.transaction_requests import local_retrieve_transactions
 from common.wallet import verify_signature
-from client.settings import Client_Settings
+from full_node.settings import Full_Node_Settings
 
 from common.utxo import json_destruct_utxo_output, json_utxo_output_is_valid
 from common.utxo_requests import local_retrieve_utxo_output_from_address_and_transaction_hash
 
 
-def transaction_endpoints(app: Flask, settings: Client_Settings) -> None:
+def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/transactions/', methods=['GET'])
     def retrieve_transactions():
@@ -119,7 +119,7 @@ def transaction_endpoints(app: Flask, settings: Client_Settings) -> None:
 # check if transaction input is valid using utxo output retrieval request
 
 
-def check_transaction_input_in_utxo(settings: Client_Settings, json_transaction_input: dict):
+def check_transaction_input_in_utxo(settings: Full_Node_Settings, json_transaction_input: dict):
     try:
         transaction_input = json_destruct_input(json_transaction_input)
     except:

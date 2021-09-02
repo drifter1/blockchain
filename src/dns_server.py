@@ -6,7 +6,9 @@ from argparse import ArgumentParser
 
 from dns_server.settings import DNS_Server_Settings
 from common.node import json_destruct_node
-from common.node_endpoints import general_connection_check, local_remove_node, local_retrieve_nodes, node_endpoints
+from common.node_endpoints import node_endpoints
+from common.node_requests import general_connection_check, local_remove_node, local_retrieve_nodes
+
 
 # Setup Files Routine
 

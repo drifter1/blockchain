@@ -1,11 +1,11 @@
 from flask import Flask, request
 import json
 
-from client.settings import Client_Settings
+from full_node.settings import Full_Node_Settings
 from common.blockchain import json_blockchain_info_is_valid
 
 
-def blockchain_endpoints(app: Flask, settings: Client_Settings) -> None:
+def blockchain_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/blockchain/', methods=['GET'])
     def retrieve_blockchain_info():

@@ -2,14 +2,14 @@ from flask import Flask, request
 import json
 
 from common.utxo import UTXO, json_construct_utxo, json_destruct_utxo_output, json_utxo_is_valid, json_utxo_output_is_valid
-from client.settings import Client_Settings
+from full_node.settings import Full_Node_Settings
 from common.transaction import json_destruct_output
 
 from common.block_requests import local_retrieve_block_transaction_output
 from common.utxo_requests import local_retrieve_utxo_address, local_retrieve_utxo_outputs_of_address, local_create_utxo
 
 
-def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
+def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/utxo/<string:address>/', methods=['GET'])
     def retrieve_utxo_of_address(address):
@@ -156,7 +156,7 @@ def utxo_endpoints(app: Flask, settings: Client_Settings) -> None:
 
 # check if utxo output is valid using block transaction output retrieval request
 
-def check_utxo_output_in_block(settings: Client_Settings, address: str, json_utxo_output: dict):
+def check_utxo_output_in_block(settings: Full_Node_Settings, address: str, json_utxo_output: dict):
     utxo_output = json_destruct_utxo_output(json_utxo_output)
 
     json_transaction_output = local_retrieve_block_transaction_output(

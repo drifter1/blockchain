@@ -5,19 +5,15 @@ import time
 import json
 from argparse import ArgumentParser
 
-from client.settings import Client_Settings
+from full_node.settings import Full_Node_Settings
 from common.node import json_destruct_node
 from common.node_endpoints import node_endpoints
 from common.node_requests import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes
 from common.blockchain import Blockchain, json_construct_blockchain_info
 from common.blockchain_endpoints import blockchain_endpoints
-from common.transaction import Input, Output, Transaction, calculate_output_hash, calculate_transaction_hash, json_construct_transaction, sign_input
 from common.transaction_endpoints import transaction_endpoints
-from common.transaction_requests import local_post_transaction
-from common.block import Block, calculate_block_hash, json_construct_block
 from common.block_endpoints import block_endpoints
-from common.block_requests import local_create_block
-from common.wallet import Wallet, json_construct_wallet, json_retrieve_private_key, json_retrieve_address
+from common.wallet import Wallet, json_construct_wallet
 from common.utxo_endpoints import utxo_endpoints
 
 # Setup Files Routine
@@ -168,132 +164,6 @@ def update_nodes():
         # wait for a specific interval of time
         time.sleep(settings.update_interval)
 
-# '''
-
-
-def testing():
-    time.sleep(2)
-
-    wallet_json = json.load(open(settings.wallet_path, "r"))
-
-    address = json_retrieve_address(wallet_json)
-    private_key = json_retrieve_private_key(wallet_json)
-
-    # create reward transaction
-
-    reward_input = Input(
-        output_value=2.5
-    )
-
-    reward_output = Output(
-        address=address,
-        value=2.5
-    )
-    calculate_output_hash(reward_output)
-
-    reward_transaction = Transaction(
-        inputs=[reward_input],
-        outputs=[reward_output],
-        total_input=2.5,
-        total_output=2.5,
-        fee=0
-    )
-    calculate_transaction_hash(reward_transaction)
-
-    # create block 0
-
-    block0 = Block(height=0, creator=address, reward=2.5, fees=0,
-                   nonce="abcdef", transactions=[reward_transaction])
-
-    calculate_block_hash(block0)
-
-    json_block0 = json_construct_block(block0)
-
-    local_create_block(settings, json_block0)
-
-    time.sleep(2)
-
-    # create reward transaction 2
-
-    reward_input2 = Input(
-        output_value=2.5
-    )
-
-    reward_output2 = Output(
-        address=address,
-        value=2.5
-    )
-    calculate_output_hash(reward_output2)
-
-    reward_transaction2 = Transaction(
-        inputs=[reward_input2],
-        outputs=[reward_output2],
-        total_input=2.5,
-        total_output=2.5,
-        fee=0
-    )
-    calculate_transaction_hash(reward_transaction2)
-
-    # create and post test transaction
-
-    input0 = Input(
-        transaction_hash=reward_transaction.hash,
-        output_index=0,
-        output_address=address,
-        output_value=reward_output.value,
-        output_hash=reward_output.hash,
-    )
-    sign_input(input0, private_key)
-
-    output0 = Output(
-        index=0,
-        address="0x60a192daca0804e113d6e6d41852c611be5de0bf",
-        value=1.2
-    )
-    calculate_output_hash(output0)
-
-    output1 = Output(
-        index=1,
-        address="0xe23fc383c7007002ef08be610cef95a86ce44e26",
-        value=0.3
-    )
-    calculate_output_hash(output1)
-
-    output2 = Output(
-        index=2,
-        address=address,
-        value=0.999
-    )
-    calculate_output_hash(output2)
-
-    transaction = Transaction(
-        inputs=[input0],
-        outputs=[output0, output1, output2],
-        total_input=2.5,
-        total_output=2.499,
-        fee=0.001
-    )
-    calculate_transaction_hash(transaction)
-
-    json_transaction = json_construct_transaction(transaction)
-
-    local_post_transaction(settings, json_transaction)
-
-    time.sleep(2)
-
-    # create block 1
-
-    block1 = Block(height=1, creator=address, reward=2.5, fees=0.001,
-                   nonce="123456", transactions=[reward_transaction2, transaction])
-
-    calculate_block_hash(block1)
-
-    json_block1 = json_construct_block(block1)
-
-    local_create_block(settings, json_block1)
-
-# '''
-
 
 # client arguments
 parser = ArgumentParser()
@@ -302,7 +172,7 @@ parser.add_argument("-i", "--ip", default=None, type=str,
 parser.add_argument("-p", "--port", default=None, type=int,
                     help="port (default : random in [50000, 60000])")
 parser.add_argument("-d", "--dir", default=None, type=str,
-                    help="directory (default : ../.client)")
+                    help="directory (default : ../.full_node)")
 parser.add_argument("-n", "--nodes", default=None, type=str,
                     help="nodes filename (default : nodes.json)")
 parser.add_argument("-b", "--blockchain", default=None, type=str,
@@ -329,7 +199,7 @@ parser.add_argument("-dp", "--dns_port", default=None, type=int,
                     help="main dns ip port (default : 42020)")
 args = vars(parser.parse_args())
 
-settings = Client_Settings(
+settings = Full_Node_Settings(
     ip_address=args["ip"], port=args["port"], directory=args["dir"],
     nodes_filename=args["nodes"], blockchain_filename=args["blockchain"],
     blocks_foldername=args["blocks"], block_file_template=args["block_temp"],
@@ -352,9 +222,6 @@ utxo_endpoints(app, settings)
 setup_files()
 
 _thread.start_new_thread(update_nodes, ())
-
-# testing
-_thread.start_new_thread(testing, ())
 
 if __name__ == "__main__":
     app.run(host=settings.ip_address, port=settings.port)

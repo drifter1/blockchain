@@ -1,7 +1,7 @@
 from flask import Flask, request
 import json
 
-from client.settings import Client_Settings
+from full_node.settings import Full_Node_Settings
 from common.block import calculate_block_hash, json_block_is_valid, json_destruct_block
 from common.transaction import json_destruct_input
 from common.utxo import UTXO_Output, json_utxo_output_is_valid, json_destruct_utxo_output, json_construct_utxo_output
@@ -11,7 +11,7 @@ from common.transaction_requests import local_remove_transaction, local_retrieve
 from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
 
 
-def block_endpoints(app: Flask, settings: Client_Settings) -> None:
+def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/blocks/<int:bid>/', methods=['GET'])
     def retrieve_block(bid):
@@ -207,7 +207,7 @@ def block_endpoints(app: Flask, settings: Client_Settings) -> None:
 # check if transaction input is valid using utxo output retrieval request
 
 
-def check_transaction_input_in_utxo(settings: Client_Settings, json_transaction_input: dict):
+def check_transaction_input_in_utxo(settings: Full_Node_Settings, json_transaction_input: dict):
     try:
         transaction_input = json_destruct_input(json_transaction_input)
     except:

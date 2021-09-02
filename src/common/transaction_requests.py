@@ -1,20 +1,20 @@
 import requests
 
-from client.settings import Client_Settings
+from common.settings import Node_Settings
 from common.node import json_destruct_node
 
 
 # local requests
 
-def local_retrieve_transactions(settings: Client_Settings):
+def local_retrieve_transactions(settings: Node_Settings):
     return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/transactions/").json()
 
 
-def local_post_transaction(settings: Client_Settings, json_transaction: dict):
+def local_post_transaction(settings: Node_Settings, json_transaction: dict):
     return requests.post("http://" + str(json_destruct_node(settings.json_node)) + "/transactions/", json=json_transaction).json()
 
 
-def local_remove_transaction(settings: Client_Settings, json_transaction: dict):
+def local_remove_transaction(settings: Node_Settings, json_transaction: dict):
     return requests.delete("http://" + str(json_destruct_node(settings.json_node)) + "/transactions/", json=json_transaction).json()
 
 # general requests

@@ -2,7 +2,7 @@
     "default_ip_address": "127.0.0.1",
     "port_min": 50000,
     "port_max": 60000,
-    "default_directory": "../.client",
+    "default_directory": "../.full_node",
     "default_nodes_filename": "nodes.json",
     "default_blockchain_filename": "blockchain.json",
     "default_blocks_foldername": "blocks",

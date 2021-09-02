@@ -1,19 +1,20 @@
+from argparse import ArgumentParser
 from flask import Flask
 import os
-import _thread
 import time
-from argparse import ArgumentParser
+import _thread
 
 from dns_server.settings import DNS_Server_Settings
+
 from common.node import json_destruct_node
 from common.node_endpoints import node_endpoints
 from common.node_requests import general_connection_check, local_remove_node, local_retrieve_nodes
 
 
-# Setup Files Routine
-
-
 def setup_files():
+    '''
+        Create the dns server directory and nodes file (if they don't exist already).
+    '''
     # directory management
     if not os.path.exists(settings.directory):
         os.mkdir(settings.directory)
@@ -30,10 +31,12 @@ def setup_files():
     else:
         print("File \"" + settings.nodes_path + "\" already exists!")
 
-# Update Nodes Routine
-
 
 def update_nodes():
+    '''
+        Periodically check if the nodes are reachable using a connection check request
+        and remove off-line nodes accordingly in order to update the nodes.
+    '''
     time.sleep(1)
 
     while True:
@@ -56,9 +59,8 @@ def update_nodes():
         # wait for a specific interval of time
         time.sleep(settings.update_interval)
 
+
 # dns server arguments
-
-
 parser = ArgumentParser()
 parser.add_argument("-i", "--ip", default=None, type=str,
                     help="ip address (default : 127.0.0.1)")
@@ -77,15 +79,18 @@ settings = DNS_Server_Settings(
     nodes_filename=args["nodes"], update_interval=args["upd_int"]
 )
 
-# main function
-
-app = Flask(__name__)
-
-node_endpoints(app, settings)
-
+# setup directory and files
 setup_files()
 
+# flask app
+app = Flask(__name__)
+
+# add endpoints
+node_endpoints(app, settings)
+
+# start thread for regularly updating nodes
 _thread.start_new_thread(update_nodes, ())
 
+# start flask app
 if __name__ == "__main__":
     app.run(host=settings.ip_address, port=settings.port)

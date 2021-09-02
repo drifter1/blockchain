@@ -1,11 +1,12 @@
+from argparse import ArgumentParser
 from flask import Flask
 import os
 import _thread
 import time
 import json
-from argparse import ArgumentParser
 
 from full_node.settings import Full_Node_Settings
+
 from common.node import json_destruct_node
 from common.node_endpoints import node_endpoints
 from common.node_requests import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes
@@ -16,10 +17,11 @@ from common.block_endpoints import block_endpoints
 from common.wallet import Wallet, json_construct_wallet
 from common.utxo_endpoints import utxo_endpoints
 
-# Setup Files Routine
-
 
 def setup_files():
+    '''
+        Create the full_node directory and remainder files and sub-folders (if they don't exist already).
+    '''
     # directory management
     if not os.path.exists(settings.directory):
         os.mkdir(settings.directory)
@@ -78,10 +80,13 @@ def setup_files():
     else:
         print("Folder \"" + settings.utxo_path + "\" already exists!")
 
-# Update Nodes Routines
-
 
 def check_known_nodes():
+    '''
+        Check if known nodes are reachable using a connection check request,
+        remove off-line nodes accordingly and check if the number of known nodes
+        exceeds the required limit.
+    '''
     json_nodes = local_retrieve_nodes(settings)
 
     for json_node in json_nodes:
@@ -103,6 +108,10 @@ def check_known_nodes():
 
 
 def retrieve_known_nodes_connections():
+    '''
+        Retrieve the known nodes's connections and add them to the known nodes.
+        Afterwards, check if the number of known nodes exceeds the required limit.
+    '''
     json_nodes = local_retrieve_nodes(settings)
 
     for json_node in json_nodes:
@@ -126,6 +135,10 @@ def retrieve_known_nodes_connections():
 
 
 def contact_dns_server():
+    '''
+        As a last resort, and also as an initial connection mechanism,
+        contact the DNS Server in order to retrieve its known nodes.
+    '''
     try:
         json_nodes = general_retrieve_nodes(
             settings.main_dns_server_json_node, settings.json_node)
@@ -138,6 +151,13 @@ def contact_dns_server():
 
 
 def update_nodes():
+    '''
+        Periodically, check if the known nodes are reachable by removing off-line ones.
+        If the number of known nodes is not exceeding the required limit, then retrieve
+        the known nodes's connections and add them to the known nodes.
+        Lastly, as a last resort if the number of known nodes is still not sufficient,
+        contact the DNS server in order to retrieve all of its known nodes.
+    '''
     time.sleep(1)
 
     while True:
@@ -209,19 +229,22 @@ settings = Full_Node_Settings(
     main_dns_server_ip_address=args["dns_ip"], main_dns_server_port=args["dns_port"]
 )
 
-# main function
+# setup directory and files
+setup_files()
 
+# flask app
 app = Flask(__name__)
 
+# add endpoints
 node_endpoints(app, settings)
 blockchain_endpoints(app, settings)
 transaction_endpoints(app, settings)
 block_endpoints(app, settings)
 utxo_endpoints(app, settings)
 
-setup_files()
-
+# start thread for regularly updating nodes
 _thread.start_new_thread(update_nodes, ())
 
+# start flask app
 if __name__ == "__main__":
     app.run(host=settings.ip_address, port=settings.port)

@@ -2,13 +2,14 @@ from flask import Flask, request
 import json
 
 from full_node.settings import Full_Node_Settings
+from full_node.transaction_endpoints import check_transaction_input
+
 from common.block import calculate_block_hash, json_block_is_valid, json_destruct_block
 from common.utxo import UTXO_Output, json_construct_utxo_output
 
 from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs, local_retrieve_block_transaction_output
 from common.transaction_requests import local_remove_transaction, local_retrieve_transactions
 from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
-from common.transaction_endpoints import check_transaction_input
 
 
 def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:

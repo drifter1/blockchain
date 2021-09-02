@@ -1,8 +1,9 @@
 from flask import Flask, request
 import json
 
-from common.utxo import UTXO, json_construct_utxo, json_destruct_utxo_output, json_utxo_is_valid, json_utxo_output_is_valid
 from full_node.settings import Full_Node_Settings
+
+from common.utxo import UTXO, json_construct_utxo, json_destruct_utxo_output, json_utxo_is_valid, json_utxo_output_is_valid
 from common.transaction import json_destruct_output
 
 from common.block_requests import local_retrieve_block_transaction_output

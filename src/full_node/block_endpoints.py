@@ -2,13 +2,13 @@ from flask import Flask, request
 import json
 
 from full_node.settings import Full_Node_Settings
-from full_node.transaction_endpoints import check_transaction_input
+from full_node.block_validation import recalculate_and_check_block_hash, check_block_transactions
 
-from common.block import calculate_block_hash, json_block_is_valid, json_destruct_block
+from common.block import json_block_is_valid
 from common.utxo import UTXO_Output, json_construct_utxo_output
 
-from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs, local_retrieve_block_transaction_output
-from common.transaction_requests import local_remove_transaction, local_retrieve_transactions
+from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
+from common.transaction_requests import local_remove_transaction
 from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
 
 
@@ -94,48 +94,12 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         if json_block_is_valid(json_block):
 
             # recalculate and check hash
-            try:
-                block = json_destruct_block(json_block)
-
-                calculate_block_hash(block)
-
-                if block.hash != json_block["hash"]:
-                    return {}
-
-            except:
+            if not recalculate_and_check_block_hash(json_block):
                 return {}
 
             # check transactions
-            json_transactions = json_block["transactions"]
-
-            json_unconfirmed_transactions = local_retrieve_transactions(
-                settings)
-
-            for json_transaction in json_transactions:
-
-                # don't check coinbase transaction
-                if json_transaction["inputs"][0]["output_address"] == "0x0000000000000000000000000000000000000000":
-                    continue
-
-                # check if transaction in unconfirmed transactions array
-                if json_transaction not in json_unconfirmed_transactions:
-                    return {}
-
-                json_inputs = json_transaction["inputs"]
-
-                # keep track of referenced outputs
-                json_checked_inputs = []
-
-                # check if inputs are in utxo
-                for json_input in json_inputs:
-
-                    if not check_transaction_input(settings, json_input):
-                        return {}
-
-                    if json_input in json_checked_inputs:
-                        return {}
-
-                    json_checked_inputs.append(json_input)
+            if not check_block_transactions(settings, json_block["transactions"]):
+                return {}
 
             # missing consensus
 

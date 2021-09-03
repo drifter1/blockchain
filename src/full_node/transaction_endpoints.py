@@ -1,16 +1,11 @@
 from flask import Flask, request
 import json
-from binascii import unhexlify
 
 from full_node.settings import Full_Node_Settings
+from full_node.transaction_validation import check_transaction_inputs, recalculate_and_check_transaction_hash, recalculate_and_check_transaction_values, verify_input_signatures
 
-from common.transaction import Input, Output, json_destruct_input, json_destruct_output, json_destruct_transaction, json_transaction_is_valid, calculate_transaction_hash
-from common.wallet import verify_signature
-from common.utxo import json_destruct_utxo_output, json_utxo_output_is_valid
-
-from common.block_requests import local_retrieve_block_transaction_output
+from common.transaction import json_transaction_is_valid
 from common.transaction_requests import local_retrieve_transactions
-from common.utxo_requests import local_retrieve_utxo_output_from_address_and_transaction_hash
 
 
 def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
@@ -29,57 +24,21 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         # check JSON format
         if json_transaction_is_valid(json_transaction):
 
-            # check if inputs exist in utxo and has correct value
-            json_transaction_inputs = json_transaction["inputs"]
-
-            for json_transaction_input in json_transaction_inputs:
-                if not check_transaction_input(settings, json_transaction_input):
-                    return {}
-
-            transaction = json_destruct_transaction(json_transaction)
-
-            # recalculate and check total_input
-            total_input = 0
-            input: Input
-            for input in transaction.inputs:
-                total_input += input.output_value
-
-            if total_input != transaction.total_input:
+            # check transaction inputs
+            if not check_transaction_inputs(settings, json_transaction["inputs"]):
                 return {}
 
-            # recalculate and check total_output
-            total_output = 0
-            output: Output
-            for output in transaction.outputs:
-                total_output += output.value
-
-            if total_output != transaction.total_output:
-                return {}
-
-            # check if total_input - fee == total_output
-            if transaction.total_input - transaction.fee != transaction.total_output:
+            # recalculate and check the transaction input and output values and fee balancing
+            if not recalculate_and_check_transaction_values(json_transaction):
                 return {}
 
             # recalculate and check hash
-            try:
-                calculate_transaction_hash(transaction)
-
-                if transaction.hash != json_transaction["hash"]:
-                    return {}
-            except:
+            if not recalculate_and_check_transaction_hash(json_transaction):
                 return {}
 
             # check input signatures
-            input: Input
-            for input in transaction.inputs:
-                signature = unhexlify(input.signature)
-                hash = unhexlify(input.output_hash)
-
-                try:
-                    if not verify_signature(signature, hash, input.output_address):
-                        return{}
-                except:
-                    return{}
+            if not verify_input_signatures(json_transaction["inputs"]):
+                return {}
 
             # add transaction if not already in transactions
             json_transactions: list = local_retrieve_transactions(settings)
@@ -117,32 +76,3 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 return {}
         else:
             return {}
-
-# check if transaction input is valid
-
-
-def check_transaction_input(settings: Full_Node_Settings, json_transaction_input: dict):
-    try:
-        transaction_input = json_destruct_input(json_transaction_input)
-    except:
-        return False
-
-    # retrieve utxo output
-    json_utxo_output = local_retrieve_utxo_output_from_address_and_transaction_hash(
-        settings, transaction_input.output_address, transaction_input.transaction_hash)
-
-    if not json_utxo_output_is_valid(json_utxo_output):
-        return False
-
-    utxo_output = json_destruct_utxo_output(json_utxo_output)
-
-    # retrieve block transaction output
-    json_block_transaction_output = local_retrieve_block_transaction_output(
-        settings, utxo_output.block_height, utxo_output.transaction_index, utxo_output.output_index)
-
-    block_transaction_output = json_destruct_output(
-        json_block_transaction_output)
-
-    # check balance
-    if transaction_input.output_value == block_transaction_output.value:
-        return True

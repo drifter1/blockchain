@@ -56,6 +56,8 @@ pip install flask requests mnemonic ecdsa
 ## UTXO Endpoints
 | Endpoint                                  | HTTP Verb  | Request (JSON)    | Response (JSON)    |  Description                                   |
 | :---------------------------------------  | :------:   | :---------------: | :--------------:   |  :------------------------------------------   |
+| /utxo/                                    | GET        | -                 | UTXO Info          |  Retrieve utxo information                     |
+| /utxo/                                    | PUT        | UTXO Info         | UTXO Info          |  Replace utxo information                      |
 | /utxo/address/                            | GET        | -                 | UTXO               |  Retrieve utxo by address                      |
 | /utxo/address/outputs/                    | GET        | -                 | UTXO Output array  |  Retrieve utxo outputs by address              |
 | /utxo/address/outputs/transaction_hash/   | GET        | -                 | UTXO Output        |  Retrieve utxo output by address-hash pair     |

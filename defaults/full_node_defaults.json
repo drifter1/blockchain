@@ -11,6 +11,7 @@
     "default_wallet_filename": "wallet.json",
     "default_utxo_foldername" : "utxo",
     "default_utxo_file_template" : "utxo_",
+    "default_utxo_info_filename" : "utxo_info.json",
     "default_update_interval": 60,
     "default_known_nodes_limit" : 10,
     "main_dns_server_ip_address" : "127.0.0.1",

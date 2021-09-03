@@ -6,6 +6,14 @@ from common.node import json_destruct_node
 # local requests
 
 
+def local_retrieve_utxo_info(settings: Node_Settings):
+    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/").json()
+
+
+def local_update_utxo_info(settings: Node_Settings, json_utxo_info: dict):
+    return requests.put("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/", json=json_utxo_info).json()
+
+
 def local_retrieve_utxo_address(settings: Node_Settings, address: str):
     return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/").json()
 
@@ -31,6 +39,13 @@ def local_remove_utxo_output(settings: Node_Settings, address: str, json_utxo_ou
 
 
 # general requests
+
+def general_retrieve_utxo_info(target_node: dict):
+    return requests.get("http://" + str(json_destruct_node(target_node)) + "/utxo/").json()
+
+
+def general_update_utxo_info(target_node: dict, json_utxo_info: dict):
+    return requests.put("http://" + str(json_destruct_node(target_node)) + "/utxo/", json=json_utxo_info).json()
 
 
 def general_retrieve_utxo_address(target_node: dict, address: str):

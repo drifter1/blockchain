@@ -1,15 +1,16 @@
 from flask import Flask, request
 import json
+import os
 
 from full_node.settings import Full_Node_Settings
 from full_node.block_validation import recalculate_and_check_block_hash, check_block_transactions
 
 from common.block import json_block_is_valid
-from common.utxo import UTXO_Output, json_construct_utxo_output
+from common.utxo import UTXO_Info, UTXO_Output, json_construct_utxo_info, json_construct_utxo_output
 
 from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
 from common.transaction_requests import local_remove_transaction
-from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
+from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output, local_update_utxo_info
 
 
 def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
@@ -163,6 +164,15 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                         settings, json_output["address"], json_utxo_output)
 
                 transaction_index += 1
+
+            # update utxo info
+            utxo_info = UTXO_Info()
+            utxo_info.last_block_included = json_block["height"]
+            utxo_info.total_address_count = len(os.listdir(settings.utxo_path))
+
+            json_utxo_info = json_construct_utxo_info(utxo_info)
+
+            local_update_utxo_info(settings, json_utxo_info)
 
             return json.dumps(json_block)
 

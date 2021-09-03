@@ -6,13 +6,13 @@ from full_node.settings import Full_Node_Settings
 from full_node.block_validation import recalculate_and_check_block_hash, check_block_transactions
 
 from common.block import json_block_is_valid
-from common.blockchain import json_destruct_blockchain_info, json_construct_blockchain_info
+from common.blockchain import AddressBalancePair, json_destruct_blockchain_info, json_construct_blockchain_info
 from common.utxo import UTXO_Output, json_construct_utxo_output
 
 from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
 from common.blockchain_requests import local_retrieve_blockchain_info, local_update_blockchain_info
 from common.transaction_requests import local_remove_transaction
-from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
+from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_address, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
 
 
 def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
@@ -177,6 +177,18 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 os.listdir(settings.utxo_path))
             blockchain_info.total_transactions += len(
                 json_block["transactions"])
+
+            # rich list calculation (currently inefficient)
+            blockchain_info.rich_list = []
+            for utxo_file in os.listdir(settings.utxo_path):
+                address = utxo_file[5:47]
+                balance = local_retrieve_utxo_address(
+                    settings, address)["balance"]
+                address_balance_pair = AddressBalancePair(address, balance)
+                blockchain_info.rich_list.append(address_balance_pair)
+            blockchain_info.rich_list.sort(reverse=True)
+            while len(blockchain_info.rich_list) > 10:
+                blockchain_info.rich_list.pop()
 
             json_blockchain_info = json_construct_blockchain_info(
                 blockchain_info)

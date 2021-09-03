@@ -6,11 +6,13 @@ from full_node.settings import Full_Node_Settings
 from full_node.block_validation import recalculate_and_check_block_hash, check_block_transactions
 
 from common.block import json_block_is_valid
-from common.utxo import UTXO_Info, UTXO_Output, json_construct_utxo_info, json_construct_utxo_output
+from common.blockchain import json_destruct_blockchain_info, json_construct_blockchain_info
+from common.utxo import UTXO_Output, json_construct_utxo_output
 
 from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
+from common.blockchain_requests import local_retrieve_blockchain_info, local_update_blockchain_info
 from common.transaction_requests import local_remove_transaction
-from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output, local_update_utxo_info
+from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
 
 
 def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
@@ -165,14 +167,20 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
                 transaction_index += 1
 
-            # update utxo info
-            utxo_info = UTXO_Info()
-            utxo_info.last_block_included = json_block["height"]
-            utxo_info.total_address_count = len(os.listdir(settings.utxo_path))
+            # update blockchain info
+            json_blockchain_info = local_retrieve_blockchain_info(settings)
+            blockchain_info = json_destruct_blockchain_info(
+                json_blockchain_info)
 
-            json_utxo_info = json_construct_utxo_info(utxo_info)
+            blockchain_info.height = json_block["height"]
+            blockchain_info.total_addresses = len(
+                os.listdir(settings.utxo_path))
+            blockchain_info.total_transactions += len(
+                json_block["transactions"])
 
-            local_update_utxo_info(settings, json_utxo_info)
+            json_blockchain_info = json_construct_blockchain_info(
+                blockchain_info)
+            local_update_blockchain_info(settings, json_blockchain_info)
 
             return json.dumps(json_block)
 

@@ -119,6 +119,12 @@ json_block0 = json_construct_block(block0)
 
 general_create_block(json_node, json_block0)
 
+# retrieve utxo for the wallet address
+
+json_utxo = general_retrieve_utxo_address(json_node, address)
+
+print(json_utxo)
+
 time.sleep(2)
 
 # create reward transaction 2
@@ -187,8 +193,6 @@ calculate_transaction_hash(transaction)
 json_transaction = json_construct_transaction(transaction)
 
 general_post_transaction(json_node, json_transaction)
-
-time.sleep(2)
 
 # create block 1
 

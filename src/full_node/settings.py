@@ -6,7 +6,7 @@ from common.settings import Node_Settings
 
 
 class Full_Node_Settings(Node_Settings):
-    def __init__(self, ip_address=None, port=None, directory=None, nodes_filename=None, blockchain_filename=None, blocks_foldername=None, block_file_template=None, transactions_filename=None, wallet_filename=None, utxo_foldername=None, utxo_file_template=None, utxo_info_filename=None, update_interval=None, known_nodes_limit=None, main_dns_server_ip_address=None, main_dns_server_port=None):
+    def __init__(self, ip_address=None, port=None, directory=None, nodes_filename=None, blockchain_filename=None, blocks_foldername=None, block_file_template=None, transactions_filename=None, wallet_filename=None, utxo_foldername=None, utxo_file_template=None, update_interval=None, known_nodes_limit=None, main_dns_server_ip_address=None, main_dns_server_port=None):
 
         # load defaults
         f = open("../defaults/full_node_defaults.json")
@@ -36,8 +36,6 @@ class Full_Node_Settings(Node_Settings):
             utxo_foldername != None) else self.directory + "/" + full_node_defaults["default_utxo_foldername"]
         self.utxo_file_path = self.utxo_path + "/" + utxo_file_template if(
             utxo_file_template != None) else self.utxo_path + "/" + full_node_defaults["default_utxo_file_template"]
-        self.utxo_info_path = self.directory + "/" + utxo_info_filename if(
-            utxo_info_filename != None) else self.directory + "/" + full_node_defaults["default_utxo_info_filename"]
         self.update_interval = update_interval if (
             update_interval != None) else full_node_defaults["default_update_interval"]
         self.known_nodes_limit = known_nodes_limit if(

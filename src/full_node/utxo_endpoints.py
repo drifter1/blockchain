@@ -3,7 +3,7 @@ import json
 
 from full_node.settings import Full_Node_Settings
 
-from common.utxo import UTXO, json_construct_utxo, json_destruct_utxo_output, json_utxo_info_is_valid, json_utxo_is_valid, json_utxo_output_is_valid
+from common.utxo import UTXO, json_construct_utxo, json_destruct_utxo_output, json_utxo_is_valid, json_utxo_output_is_valid
 from common.transaction import json_destruct_output
 
 from common.block_requests import local_retrieve_block_transaction_output
@@ -11,33 +11,6 @@ from common.utxo_requests import local_retrieve_utxo_address, local_retrieve_utx
 
 
 def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
-
-    @app.route('/utxo/', methods=['GET'])
-    def retrieve_utxo_info():
-        try:
-            json_utxo_info = json.load(open(settings.utxo_info_path, "r"))
-
-            if json_utxo_info_is_valid(json_utxo_info):
-                return json.dumps(json_utxo_info)
-            else:
-                return {}
-        except:
-            return {}
-
-    @app.route('/utxo/', methods=["PUT"])
-    def update_utxo_info():
-        json_utxo_info_old = json.load(open(settings.utxo_info_path, "r"))
-
-        json_utxo_info_new = request.get_json()
-
-        if json_utxo_info_is_valid(json_utxo_info_new):
-
-            json.dump(obj=json_utxo_info_new, fp=open(
-                settings.utxo_info_path, "w"))
-
-            return json.dumps(json_utxo_info_new)
-
-        return json.dumps(json_utxo_info_old)
 
     @app.route('/utxo/<string:address>/', methods=['GET'])
     def retrieve_utxo_of_address(address):

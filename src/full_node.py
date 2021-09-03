@@ -15,7 +15,6 @@ from full_node.utxo_endpoints import utxo_endpoints
 from common.blockchain import Blockchain, json_construct_blockchain_info
 from common.node import json_destruct_node
 from common.wallet import Wallet, json_construct_wallet
-from common.utxo import UTXO_Info, json_construct_utxo_info
 
 from common.node_endpoints import node_endpoints
 from common.node_requests import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes
@@ -82,15 +81,6 @@ def setup_files():
         print("Folder \"" + settings.utxo_path + "\" created")
     else:
         print("Folder \"" + settings.utxo_path + "\" already exists!")
-
-    # utxo info file
-    if not os.path.isfile(settings.utxo_info_path):
-        utxo_info_file = open(settings.utxo_info_path, "w")
-        json.dump(obj=json_construct_utxo_info(UTXO_Info()), fp=utxo_info_file)
-        utxo_info_file.close()
-        print("File \"" + settings.utxo_info_path + "\" created")
-    else:
-        print("File \"" + settings.utxo_info_path + "\" already exists!")
 
 
 def check_known_nodes():
@@ -221,8 +211,6 @@ parser.add_argument("-ut", "--utxo", default=None, type=str,
                     help="utxo foldername (default : utxo)")
 parser.add_argument("-utf", "--utxo_file", default=None, type=str,
                     help="utxo filename template (default : utxo_)")
-parser.add_argument("-uti", "--utxo_info_file", default=None, type=str,
-                    help="utxo info filename (default : utxo_info.json)")
 parser.add_argument("-u", "--upd_int", default=None,
                     type=int, help="update interval (default : 60)")
 parser.add_argument("-k", "--kn_limit", default=None, type=int,
@@ -239,7 +227,6 @@ settings = Full_Node_Settings(
     blocks_foldername=args["blocks"], block_file_template=args["block_temp"],
     transactions_filename=args["transactions"], wallet_filename=args["wallet"],
     utxo_foldername=args["utxo"], utxo_file_template=args["utxo_file"],
-    utxo_info_filename=args["utxo_info_file"],
     update_interval=args["upd_int"], known_nodes_limit=args["kn_limit"],
     main_dns_server_ip_address=args["dns_ip"], main_dns_server_port=args["dns_port"]
 )

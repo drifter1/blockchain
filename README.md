@@ -4,6 +4,7 @@ Educational Python Implementation of a Blockchain
 # Prerequisites
 - [Python](https://www.python.org/)
 - [Flask](https://flask.palletsprojects.com/)
+- [Flask API](https://flask-api.github.io/flask-api/)
 - [Requests](https://docs.python-requests.org/)
 - [Mnemonic](https://pypi.org/project/mnemonic/0.20/) 
 - [ECDSA](https://pypi.org/project/ecdsa/)
@@ -15,7 +16,7 @@ sudo apt install python
 ~~~
 and then the packages using python's package manager (pip):
 ~~~
-pip install flask requests mnemonic ecdsa
+pip install flask flask_api requests mnemonic ecdsa
 ~~~
 
 # REST API

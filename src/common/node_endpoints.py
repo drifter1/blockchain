@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask_api import status
 import json
 
 from common.node import json_node_is_valid, json_compare_nodes
@@ -17,7 +18,7 @@ def node_endpoints(app: Flask, settings: Node_Settings) -> None:
             # send request to local endpoint
             local_add_node(settings, json_node)
 
-        return settings.json_node
+        return settings.json_node, status.HTTP_200_OK
 
     # Node Endpoints
 
@@ -30,7 +31,7 @@ def node_endpoints(app: Flask, settings: Node_Settings) -> None:
 
         json_nodes = json.load(open(settings.nodes_path, "r"))
 
-        return json.dumps(json_nodes)
+        return json.dumps(json_nodes), status.HTTP_200_OK
 
     @app.route('/nodes/', methods=['POST'])
     def add_node():
@@ -45,7 +46,7 @@ def node_endpoints(app: Flask, settings: Node_Settings) -> None:
 
                 json.dump(obj=json_nodes, fp=open(settings.nodes_path, "w"))
 
-        return json.dumps(json_nodes)
+        return json.dumps(json_nodes), status.HTTP_200_OK
 
     @app.route('/nodes/', methods=['DELETE'])
     def remove_node():
@@ -59,4 +60,4 @@ def node_endpoints(app: Flask, settings: Node_Settings) -> None:
 
             json.dump(obj=json_nodes, fp=open(settings.nodes_path, "w"))
 
-        return json.dumps(json_nodes)
+        return json.dumps(json_nodes), status.HTTP_200_OK

@@ -4,5 +4,6 @@
     "port_max": 60000,
     "default_directory": "../.node",
     "default_nodes_filename": "nodes.json",
-    "default_update_interval": 60
+    "default_update_interval": 60,
+    "default_request_timeout" : 5.00
 }

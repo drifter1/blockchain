@@ -6,7 +6,7 @@ from common.settings import Node_Settings
 
 
 class Full_Node_Settings(Node_Settings):
-    def __init__(self, ip_address=None, port=None, directory=None, nodes_filename=None, blockchain_filename=None, blocks_foldername=None, block_file_template=None, transactions_filename=None, wallet_filename=None, utxo_foldername=None, utxo_file_template=None, update_interval=None, known_nodes_limit=None, main_dns_server_ip_address=None, main_dns_server_port=None):
+    def __init__(self, ip_address: str = None, port: int = None, directory: str = None, nodes_filename: str = None, blockchain_filename: str = None, blocks_foldername: str = None, block_file_template: str = None, transactions_filename: str = None, wallet_filename: str = None, utxo_foldername: str = None, utxo_file_template: str = None, update_interval: int = None, request_timeout: float = None, known_nodes_limit: int = None, main_dns_server_ip_address: str = None, main_dns_server_port: int = None):
 
         # load defaults
         f = open("../defaults/full_node_defaults.json")
@@ -38,6 +38,8 @@ class Full_Node_Settings(Node_Settings):
             utxo_file_template != None) else self.utxo_path + "/" + full_node_defaults["default_utxo_file_template"]
         self.update_interval = update_interval if (
             update_interval != None) else full_node_defaults["default_update_interval"]
+        self.request_timeout = request_timeout if (
+            request_timeout != None) else full_node_defaults["default_request_timeout"]
         self.known_nodes_limit = known_nodes_limit if(
             known_nodes_limit != None) else full_node_defaults["default_known_nodes_limit"]
         self.known_nodes = 0

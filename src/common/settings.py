@@ -5,7 +5,7 @@ from common.node import json_construct_node
 
 
 class Node_Settings:
-    def __init__(self, ip_address=None, port=None, directory=None, nodes_filename=None, update_interval=None):
+    def __init__(self, ip_address: str = None, port: int = None, directory: str = None, nodes_filename: str = None, update_interval: int = None, request_timeout: float = None):
 
         # load defaults
         f = open("../defaults/node_defaults.json")
@@ -23,3 +23,5 @@ class Node_Settings:
             nodes_filename != None) else self.directory + "/" + node_defaults["default_nodes_filename"]
         self.update_interval = update_interval if (
             update_interval != None) else node_defaults["default_update_interval"]
+        self.request_timeout = request_timeout if (
+            request_timeout != None) else node_defaults["default_request_timeout"]

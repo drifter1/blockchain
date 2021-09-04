@@ -76,7 +76,9 @@ settings = Full_Node_Settings(
 setup_files()
 
 # retrieve first known node from dns server
-json_node = general_retrieve_nodes(settings.main_dns_server_json_node)[0]
+json_nodes, status_code = general_retrieve_nodes(
+    settings, settings.main_dns_server_json_node)
+json_node = json_nodes[0]
 
 # load wallet information
 

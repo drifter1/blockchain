@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from flask import Flask
+from flask_api import status
 import os
 import _thread
 import time
@@ -89,17 +90,25 @@ def check_known_nodes():
         remove off-line nodes accordingly and check if the number of known nodes
         exceeds the required limit.
     '''
-    json_nodes = local_retrieve_nodes(settings)
+    json_nodes, status_code = local_retrieve_nodes(settings)
+
+    if status_code != status.HTTP_200_OK:
+        print("Error in local nodes retrieval!")
+        exit()
 
     for json_node in json_nodes:
         try:
-            general_connection_check(json_node, settings.json_node)
+            general_connection_check(settings, json_node, settings.json_node)
         except:
             print("Node " + str(json_destruct_node(json_node)) + " is unreachable!")
 
             local_remove_node(settings, json_node)
 
-    json_nodes = local_retrieve_nodes(settings)
+    json_nodes, status_code = local_retrieve_nodes(settings)
+
+    if status_code != status.HTTP_200_OK:
+        print("Error in local nodes retrieval!")
+        exit()
 
     settings.known_nodes = len(json_nodes)
 
@@ -114,11 +123,19 @@ def retrieve_known_nodes_connections():
         Retrieve the known nodes's connections and add them to the known nodes.
         Afterwards, check if the number of known nodes exceeds the required limit.
     '''
-    json_nodes = local_retrieve_nodes(settings)
+    json_nodes, status_code = local_retrieve_nodes(settings)
+
+    if status_code != status.HTTP_200_OK:
+        print("Error in local nodes retrieval!")
+        exit()
 
     for json_node in json_nodes:
         try:
-            known_nodes = general_retrieve_nodes(json_node, settings.json_node)
+            known_nodes, status_code = general_retrieve_nodes(
+                settings, json_node, settings.json_node)
+
+            if status_code != status.HTTP_200_OK:
+                continue
 
             for known_node in known_nodes:
                 local_add_node(settings, known_node)
@@ -126,7 +143,11 @@ def retrieve_known_nodes_connections():
         except:
             pass
 
-    json_nodes = local_retrieve_nodes(settings)
+    json_nodes, status_code = local_retrieve_nodes(settings)
+
+    if status_code != status.HTTP_200_OK:
+        print("Error in local nodes retrieval!")
+        exit()
 
     settings.known_nodes = len(json_nodes)
 
@@ -142,8 +163,12 @@ def contact_dns_server():
         contact the DNS Server in order to retrieve its known nodes.
     '''
     try:
-        json_nodes = general_retrieve_nodes(
-            settings.main_dns_server_json_node, settings.json_node)
+        json_nodes, status_code = general_retrieve_nodes(
+            settings, settings.main_dns_server_json_node, settings.json_node)
+
+        if status_code != status.HTTP_200_OK:
+            print("DNS Server is unreachable!")
+            return
 
         for json_node in json_nodes:
             local_add_node(settings, json_node)

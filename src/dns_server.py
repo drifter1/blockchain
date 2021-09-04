@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from flask import Flask
+from flask_api import status
 import os
 import time
 import _thread
@@ -43,11 +44,15 @@ def update_nodes():
         # check if nodes are reachable
         print("Updating nodes started!")
 
-        json_nodes = local_retrieve_nodes(settings)
+        json_nodes, status_code = local_retrieve_nodes(settings)
+
+        if status_code != status.HTTP_200_OK:
+            print("Error in local nodes retrieval!")
+            exit()
 
         for json_node in json_nodes:
             try:
-                general_connection_check(json_node)
+                general_connection_check(settings, json_node)
             except:
                 print("Node " + str(json_destruct_node(json_node)) +
                       " is unreachable!")

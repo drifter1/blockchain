@@ -4,6 +4,7 @@ import os
 
 from full_node.settings import Full_Node_Settings
 from full_node.block_validation import recalculate_and_check_block_hash, check_block_transactions
+from full_node.network_relay import create_block_network_relay
 
 from common.block import json_block_is_valid
 from common.blockchain import AddressBalancePair, json_destruct_blockchain_info, json_construct_blockchain_info
@@ -96,6 +97,10 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         # check JSON format
         if json_block_is_valid(json_block):
 
+            # check if block already exists
+            if json_block_is_valid(local_retrieve_block(settings, json_block["height"])):
+                return {}
+
             # recalculate and check hash
             if not recalculate_and_check_block_hash(json_block):
                 return {}
@@ -109,6 +114,9 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             # create block
             json.dump(obj=json_block, fp=open(
                 settings.block_file_path + str(json_block["height"]) + ".json", "w"))
+
+            # network relay
+            create_block_network_relay(settings, json_block)
 
             # remove included transactions from unconfirmed transactions
             for json_transaction in json_block["transactions"]:

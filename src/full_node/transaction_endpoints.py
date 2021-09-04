@@ -3,6 +3,7 @@ import json
 
 from full_node.settings import Full_Node_Settings
 from full_node.transaction_validation import check_transaction_inputs, recalculate_and_check_transaction_hash, recalculate_and_check_transaction_values, verify_input_signatures
+from full_node.network_relay import post_transaction_network_relay, remove_transaction_network_relay
 
 from common.transaction import json_transaction_is_valid
 from common.transaction_requests import local_retrieve_transactions
@@ -48,14 +49,17 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
                 json.dump(obj=json_transactions, fp=open(
                     settings.transactions_path, "w"))
-
-                return json.dumps(json_transaction)
             else:
                 return {}
 
+            # network relay
+            post_transaction_network_relay(settings, json_transaction)
+
+            return json.dumps(json_transaction)
+
         else:
             return {}
-
+    
     @app.route('/transactions/',  methods=['DELETE'])
     def remove_transaction():
 
@@ -70,9 +74,13 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 json.dump(obj=json_transactions, fp=open(
                     settings.transactions_path, "w"))
 
-                return json.dumps(json_transaction)
-
             else:
                 return {}
+
+            # network relay
+            remove_transaction_network_relay(settings, json_transaction)
+
+            return json.dumps(json_transaction)
+
         else:
             return {}

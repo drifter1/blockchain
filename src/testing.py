@@ -125,29 +125,7 @@ json_utxo = general_retrieve_utxo_address(json_node, address)
 
 print(json_utxo)
 
-time.sleep(2)
-
-# create reward transaction 2
-
-reward_input2 = Input(
-    output_value=2.5
-)
-
-reward_output2 = Output(
-    address=address,
-    value=2.5
-)
-calculate_output_hash(reward_output2)
-
-reward_transaction2 = Transaction(
-    inputs=[reward_input2],
-    outputs=[reward_output2],
-    total_input=2.5,
-    total_output=2.5,
-    fee=0
-)
-
-calculate_transaction_hash(reward_transaction2)
+time.sleep(10)
 
 # create and post test transaction
 
@@ -193,6 +171,30 @@ calculate_transaction_hash(transaction)
 json_transaction = json_construct_transaction(transaction)
 
 general_post_transaction(json_node, json_transaction)
+
+time.sleep(10)
+
+# create reward transaction 2
+
+reward_input2 = Input(
+    output_value=2.5
+)
+
+reward_output2 = Output(
+    address=address,
+    value=2.5
+)
+calculate_output_hash(reward_output2)
+
+reward_transaction2 = Transaction(
+    inputs=[reward_input2],
+    outputs=[reward_output2],
+    total_input=2.5,
+    total_output=2.5,
+    fee=0
+)
+
+calculate_transaction_hash(reward_transaction2)
 
 # create block 1
 

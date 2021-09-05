@@ -119,11 +119,12 @@ calculate_block_hash(block0)
 
 json_block0 = json_construct_block(block0)
 
-general_create_block(json_node, json_block0)
+general_create_block(settings, json_node, json_block0)
 
 # retrieve utxo for the wallet address
 
-json_utxo = general_retrieve_utxo_address(json_node, address)
+json_utxo, status_code = general_retrieve_utxo_address(
+    settings, json_node, address)
 
 print(json_utxo)
 
@@ -172,7 +173,7 @@ calculate_transaction_hash(transaction)
 
 json_transaction = json_construct_transaction(transaction)
 
-general_post_transaction(json_node, json_transaction)
+general_post_transaction(settings, json_node, json_transaction)
 
 time.sleep(10)
 
@@ -207,10 +208,11 @@ calculate_block_hash(block1)
 
 json_block1 = json_construct_block(block1)
 
-general_create_block(json_node, json_block1)
+general_create_block(settings, json_node, json_block1)
 
 # retrieve utxo for the wallet address
 
-json_utxo = general_retrieve_utxo_address(json_node, address)
+json_utxo, status_code = general_retrieve_utxo_address(
+    settings, json_node, address)
 
 print(json_utxo)

@@ -18,7 +18,7 @@ def general_network_relay(settings: Node_Settings, function: exec, json_data: di
 
     for json_node in json_nodes:
         try:
-            _thread.start_new_thread(function, (json_node, json_data))
+            _thread.start_new_thread(function, (settings, json_node, json_data))
         except:
             pass
 

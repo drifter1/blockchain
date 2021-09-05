@@ -30,7 +30,7 @@ def check_block_transactions(settings: Full_Node_Settings, json_transactions: di
         if their inputs are in the UTXO and keep track of checked inputs to prevent double-spending. 
     '''
     # retrieve unconfirmed transactions
-    json_unconfirmed_transactions = local_retrieve_transactions(settings)
+    json_unconfirmed_transactions, status_code = local_retrieve_transactions(settings)
 
     # keep track of referenced outputs
     json_checked_inputs = []

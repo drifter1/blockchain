@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask_api import status
 import json
 
 from full_node.settings import Full_Node_Settings
@@ -19,39 +20,46 @@ def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 open(settings.utxo_file_path + address + ".json", "r"))
 
             if json_utxo_is_valid(json_utxo):
-                return json.dumps(json_utxo)
+                return json.dumps(json_utxo), status.HTTP_200_OK
             else:
-                return {}
+                return {}, status.HTTP_400_BAD_REQUEST
         except:
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
 
     @app.route('/utxo/<string:address>/outputs/', methods=['GET'])
     def retrieve_utxo_outputs_of_address(address):
         try:
-            json_utxo = local_retrieve_utxo_address(settings, address)
+            json_utxo, status_code = local_retrieve_utxo_address(
+                settings, address)
+
+            if status_code != status.HTTP_200_OK:
+                return {}, status.HTTP_400_BAD_REQUEST
 
             json_utxo_outputs = json_utxo["utxo_outputs"]
 
-            return json.dumps(json_utxo_outputs)
+            return json.dumps(json_utxo_outputs), status.HTTP_200_OK
 
         except:
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
 
     @app.route('/utxo/<string:address>/outputs/<string:transaction_hash>/', methods=['GET'])
     def retrieve_utxo_output_from_address_transaction_hash_pair(address, transaction_hash):
         try:
-            json_utxo_outputs = local_retrieve_utxo_outputs_of_address(
+            json_utxo_outputs, status_code = local_retrieve_utxo_outputs_of_address(
                 settings, address)
+
+            if status_code != status.HTTP_200_OK:
+                return {}, status.HTTP_400_BAD_REQUEST
 
             for json_utxo_output in json_utxo_outputs:
                 if json_utxo_output_is_valid(json_utxo_output):
                     if json_utxo_output["transaction_hash"] == transaction_hash:
-                        return json.dumps(json_utxo_output)
+                        return json.dumps(json_utxo_output), status.HTTP_200_OK
 
             # if transaction_hash doesn't occur return nothing
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
         except:
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
 
     @app.route('/utxo/<string:address>/', methods=['POST'])
     def create_utxo_of_address(address):
@@ -70,17 +78,17 @@ def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         for json_utxo_output in json_utxo_outputs:
             if json_utxo_output_is_valid(json_utxo_output):
                 if not check_utxo_output_in_block(settings, address, json_utxo_output):
-                    return {}
+                    return {}, status.HTTP_400_BAD_REQUEST
 
         try:
             # create utxo
             json.dump(obj=json_utxo, fp=open(
                 settings.utxo_file_path + address + ".json", "w"))
 
-            return json.dumps(json_utxo)
+            return json.dumps(json_utxo), status.HTTP_200_OK
 
         except:
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
 
     @app.route('/utxo/<string:address>/outputs/', methods=['POST'])
     def add_utxo_output_to_utxo_of_address(address):
@@ -94,10 +102,11 @@ def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 settings, address, json_utxo_output)
 
             if not output_exists:
-                return {}
+                return {}, status.HTTP_400_BAD_REQUEST
 
             # retrieve utxo for address
-            json_utxo = local_retrieve_utxo_address(settings, address)
+            json_utxo, status_code = local_retrieve_utxo_address(
+                settings, address)
 
             if not json_utxo_is_valid(json_utxo):
                 utxo = UTXO()
@@ -114,11 +123,11 @@ def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
                 local_create_utxo(settings, address, json_utxo)
 
-                return json.dumps(json_utxo_output)
+                return json.dumps(json_utxo_output), status.HTTP_200_OK
 
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
         else:
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
 
     @app.route('/utxo/<string:address>/outputs/', methods=['DELETE'])
     def remove_utxo_output_from_utxo_of_address(address):
@@ -126,16 +135,20 @@ def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         json_utxo_output = request.get_json()
 
         if json_utxo_output_is_valid(json_utxo_output):
-            json_utxo = local_retrieve_utxo_address(settings, address)
+            json_utxo, status_code = local_retrieve_utxo_address(
+                settings, address)
+
+            if status_code != status.HTTP_200_OK:
+                return {}, status.HTTP_400_BAD_REQUEST
 
             if not json_utxo_is_valid(json_utxo):
-                return {}
+                return {}, status.HTTP_400_BAD_REQUEST
 
             output_exists, transaction_output = check_utxo_output_in_block(
                 settings, address, json_utxo_output)
 
             if not output_exists:
-                return {}
+                return {}, status.HTTP_400_BAD_REQUEST
 
             json_utxo_outputs: list = json_utxo["utxo_outputs"]
 
@@ -147,11 +160,11 @@ def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
                 local_create_utxo(settings, address, json_utxo)
 
-                return json.dumps(json_utxo_output)
+                return json.dumps(json_utxo_output), status.HTTP_200_OK
 
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
         else:
-            return {}
+            return {}, status.HTTP_400_BAD_REQUEST
 
 
 # check if utxo output is valid using block transaction output retrieval request
@@ -159,8 +172,11 @@ def utxo_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 def check_utxo_output_in_block(settings: Full_Node_Settings, address: str, json_utxo_output: dict):
     utxo_output = json_destruct_utxo_output(json_utxo_output)
 
-    json_transaction_output = local_retrieve_block_transaction_output(
+    json_transaction_output, status_code = local_retrieve_block_transaction_output(
         settings, utxo_output.block_height, utxo_output.transaction_index, utxo_output.output_index)
+
+    if status_code != status.HTTP_200_OK:
+        return False, None
 
     if json_transaction_output == {}:
         return False, None

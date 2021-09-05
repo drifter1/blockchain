@@ -1,56 +1,67 @@
-import requests
 
 from common.settings import Node_Settings
-from common.node import json_destruct_node
+from common.requests import local_get_request, local_post_request, local_delete_request, general_get_request, general_post_request, general_delete_request
 
 # local requests
 
 
 def local_retrieve_utxo_address(settings: Node_Settings, address: str):
-    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/").json()
+    url_path = "/utxo/" + address + "/"
+    return local_get_request(settings, url_path, {})
 
 
 def local_retrieve_utxo_outputs_of_address(settings: Node_Settings, address: str):
-    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/outputs/").json()
+    url_path = "/utxo/" + address + "/outputs/"
+    return local_get_request(settings, url_path, {})
 
 
 def local_retrieve_utxo_output_from_address_and_transaction_hash(settings: Node_Settings, address: str, transaction_hash: str):
-    return requests.get("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/outputs/" + transaction_hash + "/").json()
+    url_path = "/utxo/" + address + "/outputs/" + transaction_hash + "/"
+    return local_get_request(settings, url_path, {})
 
 
 def local_create_utxo(settings: Node_Settings, address: str, opt_json_utxo: dict = {}):
-    return requests.post("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/", json=opt_json_utxo).json()
+    url_path = "/utxo/" + address + "/"
+    return local_post_request(settings, url_path, opt_json_utxo)
 
 
 def local_add_utxo_output(settings: Node_Settings, address: str, json_utxo_output: dict):
-    return requests.post("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/outputs/", json=json_utxo_output).json()
+    url_path = "/utxo/" + address + "/outputs/"
+    return local_post_request(settings, url_path, json_utxo_output)
 
 
 def local_remove_utxo_output(settings: Node_Settings, address: str, json_utxo_output: dict):
-    return requests.delete("http://" + str(json_destruct_node(settings.json_node)) + "/utxo/" + address + "/outputs/", json=json_utxo_output).json()
-
+    url_path = "/utxo/" + address + "/outputs/"
+    return local_delete_request(settings, url_path, json_utxo_output)
 
 # general requests
 
-def general_retrieve_utxo_address(target_node: dict, address: str):
-    return requests.get("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/").json()
+
+def general_retrieve_utxo_address(settings: Node_Settings, target_node: dict, address: str):
+    url_path = "/utxo/" + address + "/"
+    return general_get_request(settings, target_node, url_path, {})
 
 
-def general_retrieve_utxo_outputs_of_address(target_node: dict, address: str):
-    return requests.get("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/outputs/").json()
+def general_retrieve_utxo_outputs_of_address(settings: Node_Settings, target_node: dict, address: str):
+    url_path = "/utxo/" + address + "/outputs/"
+    return general_get_request(settings, target_node, url_path, {})
 
 
-def general_retrieve_utxo_output_from_address_and_transaction_hash(target_node: dict, address: str, transaction_hash: str):
-    return requests.get("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/outputs/" + transaction_hash + "/").json()
+def general_retrieve_utxo_output_from_address_and_transaction_hash(settings: Node_Settings, target_node: dict, address: str, transaction_hash: str):
+    url_path = "/utxo/" + address + "/outputs/" + transaction_hash + "/"
+    return general_get_request(settings, target_node, url_path, {})
 
 
-def general_create_utxo(target_node: dict, address: str, opt_json_utxo: dict = {}):
-    return requests.post("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/", json=opt_json_utxo).json()
+def general_create_utxo(settings: Node_Settings, target_node: dict, address: str, opt_json_utxo: dict = {}):
+    url_path = "/utxo/" + address + "/"
+    return general_post_request(settings, target_node, url_path, opt_json_utxo)
 
 
-def general_add_utxo_output(target_node: dict, address: str, json_utxo_output: dict):
-    return requests.post("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/outputs/", json=json_utxo_output).json()
+def general_add_utxo_output(settings: Node_Settings, target_node: dict, address: str, json_utxo_output: dict):
+    url_path = "/utxo/" + address + "/outputs/"
+    return general_post_request(settings, target_node, url_path, json_utxo_output)
 
 
-def general_remove_utxo_output(target_node: dict, address: str, json_utxo_output: dict):
-    return requests.delete("http://" + str(json_destruct_node(target_node)) + "/utxo/" + address + "/outputs/", json=json_utxo_output).json()
+def general_remove_utxo_output(settings: Node_Settings, target_node: dict, address: str, json_utxo_output: dict):
+    url_path = "/utxo/" + address + "/outputs/"
+    return general_delete_request(settings, target_node, url_path, json_utxo_output)

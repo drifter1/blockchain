@@ -4,7 +4,6 @@ from full_node.settings import Full_Node_Settings
 from full_node.transaction_validation import check_transaction_input
 
 from common.block import json_destruct_block, calculate_block_hash
-from common.transaction_requests import local_retrieve_transactions
 from common.block_requests import local_retrieve_last_block
 
 
@@ -62,15 +61,9 @@ def recalculate_and_check_block_hash(json_block: dict):
 
 def check_block_transactions(settings: Full_Node_Settings, json_transactions: dict):
     '''
-        Check if transactions are in unconfirmed transaction array (except coinbase transaction),
-        if their inputs are in the UTXO and keep track of checked inputs to prevent double-spending. 
+        Check if the transaction inputs are in the UTXO and
+        keep track of checked inputs to prevent double-spending. 
     '''
-    # retrieve unconfirmed transactions
-    json_unconfirmed_transactions, status_code = local_retrieve_transactions(
-        settings)
-
-    if status_code != status.HTTP_200_OK:
-        return False
 
     # keep track of referenced outputs
     json_checked_inputs = []
@@ -81,10 +74,6 @@ def check_block_transactions(settings: Full_Node_Settings, json_transactions: di
         # don't check coinbase transaction
         if json_transaction["inputs"][0]["output_address"] == "0x0000000000000000000000000000000000000000":
             continue
-
-        # check if transaction in unconfirmed transactions array
-        if json_transaction not in json_unconfirmed_transactions:
-            return False
 
         json_inputs = json_transaction["inputs"]
 

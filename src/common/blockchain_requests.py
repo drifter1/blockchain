@@ -15,9 +15,9 @@ def local_update_blockchain_info(settings: Node_Settings, json_blockchain_info: 
 # general requests
 
 
-def global_retrieve_blockchain_info(settings: Node_Settings, target_node: dict):
+def general_retrieve_blockchain_info(settings: Node_Settings, target_node: dict):
     return general_get_request(settings, target_node, "/blockchain/", {})
 
 
-def global_update_blockchain_info(settings: Node_Settings, target_node: dict, json_blockchain_info: dict):
+def general_update_blockchain_info(settings: Node_Settings, target_node: dict, json_blockchain_info: dict):
     return general_put_request(settings, target_node, "/blockchain/", json_blockchain_info)

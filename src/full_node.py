@@ -13,12 +13,16 @@ from full_node.blockchain_endpoints import blockchain_endpoints
 from full_node.transaction_endpoints import transaction_endpoints
 from full_node.utxo_endpoints import utxo_endpoints
 
-from common.blockchain import Blockchain, json_construct_blockchain_info
+from common.blockchain import Blockchain, json_construct_blockchain_info, json_destruct_blockchain_info
 from common.node import json_destruct_node
 from common.wallet import Wallet, json_construct_wallet
 
 from common.node_endpoints import node_endpoints
 from common.node_requests import general_connection_check, general_retrieve_nodes, local_add_node, local_remove_node, local_retrieve_nodes
+
+from common.blockchain_requests import general_retrieve_blockchain_info, local_retrieve_blockchain_info
+from common.block_requests import general_retrieve_block, local_create_block
+from common.transaction_requests import general_retrieve_transactions, local_post_transaction
 
 
 def setup_files():
@@ -212,6 +216,67 @@ def update_nodes():
         time.sleep(settings.update_interval)
 
 
+def network_sync():
+    '''
+        Contact first known node to check if local files are up-to-date.
+        If not then retrieve all the missing blocks and
+        replace all local unconfirmed transactions.
+    '''
+    time.sleep(2)
+
+    json_nodes, status_code = local_retrieve_nodes(settings)
+
+    if status_code != status.HTTP_200_OK:
+        print("Error in local nodes retrieval!")
+        exit()
+
+    # retrieve local blockchain info
+    json_local_blockchain_info, status_code = local_retrieve_blockchain_info(
+        settings)
+
+    if status_code != status.HTTP_200_OK:
+        print("Error in local blockchain info retrieval!")
+        exit()
+
+    local_blockchain_info = json_destruct_blockchain_info(
+        json_local_blockchain_info)
+
+    # retrieve blockchain info from first known node
+    try:
+        json_node = json_nodes[0]
+
+        json_blockchain_info, status_code = general_retrieve_blockchain_info(
+            settings, json_node)
+
+        if status_code != status.HTTP_200_OK:
+            return
+    except:
+        return
+
+    blockchain_info = json_destruct_blockchain_info(json_blockchain_info)
+
+    # check if blockchain is up to date
+    if local_blockchain_info.height != blockchain_info.height:
+        for height in (local_blockchain_info.height + 1,  blockchain_info.height + 1):
+
+            # retrieve block
+            json_block, status_code = general_retrieve_block(
+                settings, json_node, height)
+
+            # post block
+            local_create_block(settings, json_block)
+
+            # retrieve transactions
+            transactions_file = open(settings.transactions_path, "w")
+            transactions_file.write("[]")
+            transactions_file.close()
+            json_transactions, status_code = general_retrieve_transactions(
+                settings, json_node)
+
+            for json_transaction in json_transactions:
+                local_post_transaction(settings, json_transaction)
+
+
 # client arguments
 parser = ArgumentParser()
 parser.add_argument("-i", "--ip", default=None, type=str,
@@ -271,6 +336,9 @@ utxo_endpoints(app, settings)
 
 # start thread for regularly updating nodes
 _thread.start_new_thread(update_nodes, ())
+
+# start thread for network synchronization
+_thread.start_new_thread(network_sync, ())
 
 # start flask app
 if __name__ == "__main__":

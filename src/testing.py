@@ -202,7 +202,8 @@ calculate_transaction_hash(reward_transaction2)
 # create block 1
 
 block1 = Block(height=1, creator=address, reward=2.5, fees=0.001,
-               nonce="123456", transactions=[reward_transaction2, transaction])
+               nonce="123456", prev_hash=block0.hash,
+               transactions=[reward_transaction2, transaction])
 
 calculate_block_hash(block1)
 

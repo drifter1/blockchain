@@ -1,8 +1,44 @@
+from flask_api import status
+
 from full_node.settings import Full_Node_Settings
 from full_node.transaction_validation import check_transaction_input
 
 from common.block import json_destruct_block, calculate_block_hash
 from common.transaction_requests import local_retrieve_transactions
+from common.block_requests import local_retrieve_last_block
+
+
+def check_previous_block(settings: Full_Node_Settings, json_block: dict):
+    '''
+        Check previous block hash is correct and height is +1.
+    '''
+    try:
+        block = json_destruct_block(json_block)
+
+        json_last_block, status_code = local_retrieve_last_block(settings)
+
+        # block is first block if no block was returned
+        if status_code != status.HTTP_200_OK:
+            if not block.height == 0:
+                return False
+
+            if not block.prev_hash == "0000000000000000000000000000000000000000000000000000000000000000":
+                return False
+
+        # previous block exists
+        else:
+            last_block = json_destruct_block(json_last_block)
+
+            if not last_block.hash == block.prev_hash:
+                return False
+
+            if not last_block.height + 1 == block.height:
+                return False
+    except:
+        return False
+
+    # all OK
+    return True
 
 
 def recalculate_and_check_block_hash(json_block: dict):
@@ -30,7 +66,8 @@ def check_block_transactions(settings: Full_Node_Settings, json_transactions: di
         if their inputs are in the UTXO and keep track of checked inputs to prevent double-spending. 
     '''
     # retrieve unconfirmed transactions
-    json_unconfirmed_transactions, status_code = local_retrieve_transactions(settings)
+    json_unconfirmed_transactions, status_code = local_retrieve_transactions(
+        settings)
 
     # keep track of referenced outputs
     json_checked_inputs = []

@@ -4,11 +4,11 @@ import json
 import os
 
 from full_node.settings import Full_Node_Settings
-from full_node.block_validation import recalculate_and_check_block_hash, check_block_transactions
+from full_node.block_validation import check_previous_block, recalculate_and_check_block_hash, check_block_transactions
 from full_node.network_relay import create_block_network_relay
 
 from common.block import json_block_is_valid
-from common.blockchain import AddressBalancePair, json_destruct_blockchain_info, json_construct_blockchain_info
+from common.blockchain import AddressBalancePair, json_blockchain_info_is_valid, json_destruct_blockchain_info, json_construct_blockchain_info
 from common.utxo import UTXO_Output, json_construct_utxo_output
 
 from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
@@ -24,6 +24,33 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         try:
             json_block = json.load(
                 open(settings.block_file_path + str(bid) + ".json", "r"))
+
+            if json_block_is_valid(json_block):
+                return json.dumps(json_block), status.HTTP_200_OK
+            else:
+                return {}, status.HTTP_400_BAD_REQUEST
+        except:
+            return {}, status.HTTP_400_BAD_REQUEST
+
+    @app.route('/blocks/last/', methods=['GET'])
+    def retrieve_last_block():
+        # retrieve blockchain info
+        json_blockchain_info, status_code = local_retrieve_blockchain_info(
+            settings)
+
+        if status_code != status.HTTP_200_OK:
+            return {}, status.HTTP_400_BAD_REQUEST
+
+        if not json_blockchain_info_is_valid(json_blockchain_info):
+            return {}, status.HTTP_400_BAD_REQUEST
+
+        # blockchain height
+        height = json_blockchain_info["height"]
+
+        # load last block
+        try:
+            json_block = json.load(
+                open(settings.block_file_path + str(height) + ".json", "r"))
 
             if json_block_is_valid(json_block):
                 return json.dumps(json_block), status.HTTP_200_OK
@@ -126,7 +153,11 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             if status_code == status.HTTP_200_OK:
                 if json_block_is_valid(json_block_local):
                     return {}, status.HTTP_200_OK
-            
+
+            # check previous block hash and height
+            if not check_previous_block(settings, json_block):
+                return {}, status.HTTP_400_BAD_REQUEST
+
             # recalculate and check hash
             if not recalculate_and_check_block_hash(json_block):
                 return {}, status.HTTP_400_BAD_REQUEST

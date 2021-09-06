@@ -10,6 +10,10 @@ def local_retrieve_block(settings: Node_Settings, bid: int):
     return local_get_request(settings, url_path, {})
 
 
+def local_retrieve_last_block(settings: Node_Settings):
+    return local_get_request(settings, "/blocks/last/", {})
+
+
 def local_retrieve_block_transactions(settings: Node_Settings, bid: int):
     url_path = "/blocks/" + str(bid) + "/transactions/"
     return local_get_request(settings, url_path, {})
@@ -52,6 +56,10 @@ def local_create_block(settings: Node_Settings, json_block: dict):
 def general_retrieve_block(settings: Node_Settings, target_node: dict, bid: int):
     url_path = "/blocks/" + str(bid) + "/"
     return general_get_request(settings, target_node, url_path, {})
+
+
+def general_retrieve_last_block(settings: Node_Settings, target_node: dict):
+    return general_get_request(settings, target_node, "/blocks/last/", {})
 
 
 def general_retrieve_block_transactions(settings: Node_Settings, target_node: dict, bid: int):

@@ -46,6 +46,7 @@ pip install flask flask_api requests mnemonic ecdsa
 | Endpoint                                     | HTTP Verb  | Request (JSON)    | Response (JSON)            |  Description                                             |
 | :-----------------------------------------   | :------:   | :--------------:  | :----------------------:   |  :----------------------------------------------------   |
 | /blocks/bid/                                 | GET        | -                 | Block                      |  Retrieve block by block id                              |
+| /blocks/last/                                | GET        | -                 | Block                      |  Retrieve last block in the chain                        |
 | /blocks/bid/transactions/                    | GET        | -                 | Transaction array          |  Retrieve block transactions by block id                 |
 | /blocks/bid/transactions/tid/                | GET        | -                 | Transaction                |  Retrieve block transaction by bid-tid pair              |
 | /blocks/bid/transactions/tid/inputs/         | GET        | -                 | Transaction input array    |  Retrieve block transaction inputs by bid-tid pair       |

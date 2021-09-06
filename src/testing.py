@@ -109,16 +109,15 @@ calculate_output_hash(reward_output)
 reward_transaction = Transaction(
     inputs=[reward_input],
     outputs=[reward_output],
-    total_input=2.5,
-    total_output=2.5,
+    value=2.5,
     fee=0
 )
 calculate_transaction_hash(reward_transaction)
 
 # create block 0
 
-block0 = Block(height=0, creator=address, reward=2.5, fees=0,
-               nonce="abcdef", transactions=[reward_transaction])
+block0 = Block(height=0, creator=address, reward=2.5, fees=0, nonce="abcdef",
+               transaction_count=1, transactions=[reward_transaction])
 
 calculate_block_hash(block0)
 
@@ -127,6 +126,8 @@ json_block0 = json_construct_block(block0)
 general_create_block(settings, json_node, json_block0)
 
 # retrieve utxo for the wallet address
+
+time.sleep(1)
 
 json_utxo, status_code = general_retrieve_utxo_address(
     settings, json_node, address)
@@ -170,8 +171,7 @@ calculate_output_hash(output2)
 transaction = Transaction(
     inputs=[input0],
     outputs=[output0, output1, output2],
-    total_input=2.5,
-    total_output=2.499,
+    value=2.499,
     fee=0.001
 )
 calculate_transaction_hash(transaction)
@@ -197,8 +197,7 @@ calculate_output_hash(reward_output2)
 reward_transaction2 = Transaction(
     inputs=[reward_input2],
     outputs=[reward_output2],
-    total_input=2.5,
-    total_output=2.5,
+    value=2.5,
     fee=0
 )
 
@@ -207,7 +206,7 @@ calculate_transaction_hash(reward_transaction2)
 # create block 1
 
 block1 = Block(height=1, creator=address, reward=2.5, fees=0.001,
-               nonce="123456", prev_hash=block0.hash,
+               nonce="123456", prev_hash=block0.hash, transaction_count=2,
                transactions=[reward_transaction2, transaction])
 
 calculate_block_hash(block1)
@@ -217,6 +216,8 @@ json_block1 = json_construct_block(block1)
 general_create_block(settings, json_node, json_block1)
 
 # retrieve utxo for the wallet address
+
+time.sleep(1)
 
 json_utxo, status_code = general_retrieve_utxo_address(
     settings, json_node, address)

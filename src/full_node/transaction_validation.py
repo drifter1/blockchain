@@ -70,31 +70,27 @@ def check_transaction_inputs(settings: Full_Node_Settings, json_transaction_inpu
 
 def recalculate_and_check_transaction_values(json_transaction: dict):
     '''
-        Recalculate and check the total_input and total_output values.
-        Also check if the total_input - fee equals the total_output condition is true.
+        Recalculate and check if the total input (value + fee) and
+        total output (value) are balanced out correctly.
     '''
     transaction = json_destruct_transaction(json_transaction)
 
-    # recalculate and check total_input
+    # recalculate and check total input (value + fee)
     total_input = 0
     input: Input
     for input in transaction.inputs:
         total_input += input.output_value
 
-    if total_input != transaction.total_input:
+    if total_input != transaction.value + transaction.fee:
         return False
 
-    # recalculate and check total_output
+    # recalculate and check total output (value)
     total_output = 0
     output: Output
     for output in transaction.outputs:
         total_output += output.value
 
-    if total_output != transaction.total_output:
-        return False
-
-    # check if total_input - fee == total_output
-    if transaction.total_input - transaction.fee != transaction.total_output:
+    if total_output != transaction.value:
         return False
 
     # all OK

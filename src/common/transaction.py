@@ -92,15 +92,14 @@ def sign_input(input: Input, private_key: SigningKey):
 # Transaction
 
 class Transaction:
-    def __init__(self, timestamp: int = None, inputs: list = None, outputs: list = None, total_input: float = None, total_output: float = None, fee: float = None, hash: str = None):
+    def __init__(self, timestamp: int = None, inputs: list = None, outputs: list = None, value: float = None, fee: float = None, hash: str = None):
 
         self.timestamp = timestamp if (timestamp != None) else int(time.time())
 
         self.inputs = inputs
         self.outputs = outputs
 
-        self.total_input = total_input if(total_input != None) else 0
-        self.total_output = total_output if(total_output != None) else 0
+        self.value = value if (value != None) else 0
         self.fee = fee if(fee != None) else 0
 
         self.hash = hash if (
@@ -112,8 +111,7 @@ def json_construct_transaction(transaction: Transaction):
         "timestamp": transaction.timestamp,
         "inputs": json_construct_transaction_inputs(transaction.inputs),
         "outputs": json_construct_transaction_outputs(transaction.outputs),
-        "total_input": transaction.total_input,
-        "total_output": transaction.total_output,
+        "value": transaction.value,
         "fee": transaction.fee,
         "hash": transaction.hash
     }
@@ -126,8 +124,7 @@ def json_destruct_transaction(json_transaction: dict):
     transaction.inputs = json_destruct_transaction_inputs(json_inputs)
     json_outputs = json_transaction["outputs"]
     transaction.outputs = json_destruct_transaction_outputs(json_outputs)
-    transaction.total_input = json_transaction["total_input"]
-    transaction.total_output = json_transaction["total_output"]
+    transaction.value = json_transaction["value"]
     transaction.fee = json_transaction["fee"]
     transaction.hash = json_transaction["hash"]
 
@@ -176,14 +173,11 @@ def json_destruct_transaction_outputs(json_outputs: dict):
 
 def json_transaction_is_valid(json_transaction: dict):
     try:
-        if len(json_transaction) == 7:
+        if len(json_transaction) == 6:
             keys = json_transaction.keys()
             if ("timestamp" in keys) and ("inputs" in keys) and ("outputs" in keys):
-                if ("total_input" in keys) and ("total_output" in keys) and ("fee" in keys):
-                    if ("hash" in keys):
-                        return True
-                    else:
-                        return False
+                if ("value" in keys) and ("fee" in keys) and ("hash" in keys):
+                    return True
                 else:
                     return False
             else:
@@ -210,8 +204,7 @@ def calculate_transaction_hash(transaction: Transaction):
         transaction_bytes += hexlify(bytes(output.address, 'ascii'))
         transaction_bytes += hexlify(bytes(str(output.value), 'ascii'))
         transaction_bytes += hexlify(bytes(output.hash, 'ascii'))
-    transaction_bytes += hexlify(bytes(str(transaction.total_input), 'ascii'))
-    transaction_bytes += hexlify(bytes(str(transaction.total_output), 'ascii'))
+    transaction_bytes += hexlify(bytes(str(transaction.value), 'ascii'))
     transaction_bytes += hexlify(bytes(str(transaction.fee), 'ascii'))
 
     hash = sha256(transaction_bytes).hexdigest()

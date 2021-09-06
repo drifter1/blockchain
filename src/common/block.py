@@ -5,7 +5,7 @@ from common.transaction import Transaction, json_construct_transaction, json_des
 
 
 class Block:
-    def __init__(self, timestamp: int = None, height: int = None, creator: str = None, reward: float = None, fees: float = None, nonce: str = None, transactions: list = None, hash: str = None, prev_hash: str = None):
+    def __init__(self, timestamp: int = None, height: int = None, creator: str = None, reward: float = None, fees: float = None, nonce: str = None, transaction_count: int = None, transactions: list = None, hash: str = None, prev_hash: str = None):
 
         self.timestamp = timestamp if (timestamp != None) else int(time.time())
 
@@ -16,6 +16,7 @@ class Block:
         self.fees = fees
         self.nonce = nonce
 
+        self.transaction_count = transaction_count
         self.transactions = transactions
 
         self.hash = hash if (
@@ -32,6 +33,7 @@ def json_construct_block(block: Block):
         "reward": block.reward,
         "fees": block.fees,
         "nonce": block.nonce,
+        "transaction_count": block.transaction_count,
         "transactions": json_construct_block_transactions(block.transactions),
         "hash": block.hash,
         "prev_hash": block.prev_hash
@@ -46,6 +48,7 @@ def json_destruct_block(json_block: dict):
     block.reward = json_block["reward"]
     block.fees = json_block["fees"]
     block.nonce = json_block["nonce"]
+    block.transaction_count = json_block["transaction_count"]
     json_transactions = json_block["transactions"]
     block.transactions = json_destruct_block_transactions(json_transactions)
     block.hash = json_block["hash"]
@@ -76,12 +79,15 @@ def json_destruct_block_transactions(json_transactions: dict):
 
 def json_block_is_valid(json_block: dict):
     try:
-        if len(json_block) == 9:
+        if len(json_block) == 10:
             keys = json_block.keys()
             if ("timestamp" in keys) and ("height" in keys) and ("creator" in keys):
                 if ("reward" in keys) and ("fees" in keys) and ("nonce" in keys):
-                    if ("transactions" in keys) and ("hash" in keys) and ("prev_hash" in keys):
-                        return True
+                    if ("transaction_count" in keys) and ("transactions" in keys):
+                        if ("hash" in keys) and ("prev_hash" in keys):
+                            return True
+                        else:
+                            return False
                     else:
                         return False
                 else:
@@ -101,6 +107,7 @@ def calculate_block_hash(block: Block):
     block_bytes += hexlify(bytes(str(block.reward), 'ascii'))
     block_bytes += hexlify(bytes(str(block.fees), 'ascii'))
     block_bytes += hexlify(bytes(block.nonce, 'ascii'))
+    block_bytes += hexlify(bytes(str(block.transaction_count), 'ascii'))
     transaction: Transaction
     for transaction in block.transactions:
         block_bytes += hexlify(bytes(transaction.hash, 'ascii'))

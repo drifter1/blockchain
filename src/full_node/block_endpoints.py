@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_api import status
 import json
 import os
+import _thread
 
 from full_node.settings import Full_Node_Settings
 from full_node.block_validation import check_previous_block, recalculate_and_check_block_hash, check_block_transactions
@@ -172,96 +173,102 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             json.dump(obj=json_block, fp=open(
                 settings.block_file_path + str(json_block["height"]) + ".json", "w"))
 
-            # network relay
-            create_block_network_relay(settings, json_block)
-
-            # remove included transactions from unconfirmed transactions
-            for json_transaction in json_block["transactions"]:
-
-                # skip coinbase transaction
-                if json_transaction["inputs"][0]["output_address"] == "0x0000000000000000000000000000000000000000":
-                    continue
-
-                local_remove_transaction(settings, json_transaction)
-
-            # update utxo's
-            transaction_index = 0
-            for json_transaction in json_block["transactions"]:
-
-                # coinbase transaction
-                if transaction_index == 0:
-                    utxo_reward_output = UTXO_Output(
-                        block_height=json_block["height"],
-                        transaction_hash=json_transaction["hash"],
-                        transaction_index=0,
-                        output_index=0
-                    )
-
-                    json_utxo_reward_output = json_construct_utxo_output(
-                        utxo_reward_output)
-
-                    local_add_utxo_output(
-                        settings, json_transaction["outputs"][0]["address"], json_utxo_reward_output)
-
-                    transaction_index += 1
-                    continue
-
-                # remove spent outputs
-
-                for json_input in json_transaction["inputs"]:
-                    json_utxo_output, status_code = local_retrieve_utxo_output_from_address_and_transaction_hash(
-                        settings, json_input["output_address"], json_input["transaction_hash"])
-
-                    local_remove_utxo_output(
-                        settings, json_input["output_address"], json_utxo_output)
-
-                # add spendable outputs
-
-                for json_output in json_transaction["outputs"]:
-                    utxo_output = UTXO_Output(
-                        block_height=json_block["height"],
-                        transaction_hash=json_transaction["hash"],
-                        transaction_index=transaction_index,
-                        output_index=json_output["index"]
-                    )
-
-                    json_utxo_output = json_construct_utxo_output(utxo_output)
-
-                    local_add_utxo_output(
-                        settings, json_output["address"], json_utxo_output)
-
-                transaction_index += 1
-
-            # update blockchain info
-            json_blockchain_info, status_code = local_retrieve_blockchain_info(
-                settings)
-            blockchain_info = json_destruct_blockchain_info(
-                json_blockchain_info)
-
-            blockchain_info.height = json_block["height"]
-            blockchain_info.total_addresses = len(
-                os.listdir(settings.utxo_path))
-            blockchain_info.total_transactions += len(
-                json_block["transactions"])
-
-            # rich list calculation (currently inefficient)
-            blockchain_info.rich_list = []
-            for utxo_file in os.listdir(settings.utxo_path):
-                address = utxo_file[5:47]
-                utxo_address, status_code = local_retrieve_utxo_address(
-                    settings, address)
-                balance = utxo_address["balance"]
-                address_balance_pair = AddressBalancePair(address, balance)
-                blockchain_info.rich_list.append(address_balance_pair)
-            blockchain_info.rich_list.sort(reverse=True)
-            while len(blockchain_info.rich_list) > 10:
-                blockchain_info.rich_list.pop()
-
-            json_blockchain_info = json_construct_blockchain_info(
-                blockchain_info)
-            local_update_blockchain_info(settings, json_blockchain_info)
+            # create block relay
+            _thread.start_new_thread(
+                create_block_relay, (settings, json_block))
 
             return json.dumps(json_block), status.HTTP_200_OK
 
         else:
             return {}, status.HTTP_400_BAD_REQUEST
+
+
+def create_block_relay(settings: Full_Node_Settings, json_block: dict):
+    # network relay
+    create_block_network_relay(settings, json_block)
+
+    # remove included transactions from unconfirmed transactions
+    for json_transaction in json_block["transactions"]:
+
+        # skip coinbase transaction
+        if json_transaction["inputs"][0]["output_address"] == "0x0000000000000000000000000000000000000000":
+            continue
+
+        local_remove_transaction(settings, json_transaction)
+
+    # update utxo's
+    transaction_index = 0
+    for json_transaction in json_block["transactions"]:
+
+        # coinbase transaction
+        if transaction_index == 0:
+            utxo_reward_output = UTXO_Output(
+                block_height=json_block["height"],
+                transaction_hash=json_transaction["hash"],
+                transaction_index=0,
+                output_index=0
+            )
+
+            json_utxo_reward_output = json_construct_utxo_output(
+                utxo_reward_output)
+
+            local_add_utxo_output(
+                settings, json_transaction["outputs"][0]["address"], json_utxo_reward_output)
+
+            transaction_index += 1
+            continue
+
+        # remove spent outputs
+
+        for json_input in json_transaction["inputs"]:
+            json_utxo_output, status_code = local_retrieve_utxo_output_from_address_and_transaction_hash(
+                settings, json_input["output_address"], json_input["transaction_hash"])
+
+            local_remove_utxo_output(
+                settings, json_input["output_address"], json_utxo_output)
+
+        # add spendable outputs
+
+        for json_output in json_transaction["outputs"]:
+            utxo_output = UTXO_Output(
+                block_height=json_block["height"],
+                transaction_hash=json_transaction["hash"],
+                transaction_index=transaction_index,
+                output_index=json_output["index"]
+            )
+
+            json_utxo_output = json_construct_utxo_output(utxo_output)
+
+            local_add_utxo_output(
+                settings, json_output["address"], json_utxo_output)
+
+        transaction_index += 1
+
+    # update blockchain info
+    json_blockchain_info, status_code = local_retrieve_blockchain_info(
+        settings)
+    blockchain_info = json_destruct_blockchain_info(
+        json_blockchain_info)
+
+    blockchain_info.height = json_block["height"]
+    blockchain_info.total_addresses = len(
+        os.listdir(settings.utxo_path))
+    blockchain_info.total_transactions += len(
+        json_block["transactions"])
+
+    # rich list calculation (currently inefficient)
+    blockchain_info.rich_list = []
+    for utxo_file in os.listdir(settings.utxo_path):
+        address = utxo_file[5:47]
+        utxo_address, status_code = local_retrieve_utxo_address(
+            settings, address)
+        balance = utxo_address["balance"]
+        address_balance_pair = AddressBalancePair(address, balance)
+        blockchain_info.rich_list.append(address_balance_pair)
+    blockchain_info.rich_list.sort(reverse=True)
+    while len(blockchain_info.rich_list) > 10:
+        blockchain_info.rich_list.pop()
+
+    json_blockchain_info = json_construct_blockchain_info(
+        blockchain_info)
+    local_update_blockchain_info(settings, json_blockchain_info)

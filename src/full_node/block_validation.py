@@ -69,6 +69,9 @@ def check_block_transactions(settings: Full_Node_Settings, json_transactions: di
     json_unconfirmed_transactions, status_code = local_retrieve_transactions(
         settings)
 
+    if status_code != status.HTTP_200_OK:
+        return False
+
     # keep track of referenced outputs
     json_checked_inputs = []
 

@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_api import status
 import json
+import _thread
 
 from full_node.settings import Full_Node_Settings
 from full_node.transaction_validation import check_transaction_inputs, recalculate_and_check_transaction_hash, recalculate_and_check_transaction_values, verify_input_signatures
@@ -14,9 +15,12 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/transactions/', methods=['GET'])
     def retrieve_transactions():
-        json_transactions = json.load(open(settings.transactions_path, "r"))
-
-        return json.dumps(json_transactions), status.HTTP_200_OK
+        try:
+            json_transactions = json.load(
+                open(settings.transactions_path, "r"))
+            return json.dumps(json_transactions), status.HTTP_200_OK
+        except:
+            return {}, status.HTTP_400_BAD_REQUEST
 
     @app.route('/transactions/', methods=['POST'])
     def post_transaction():
@@ -46,6 +50,9 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             json_transactions, status_code = local_retrieve_transactions(
                 settings)
 
+            if status_code != status.HTTP_200_OK:
+                return {}, status.HTTP_400_BAD_REQUEST
+
             if json_transaction not in json_transactions:
                 json_transactions.append(json_transaction)
 
@@ -55,7 +62,8 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 return {}, status.HTTP_200_OK
 
             # network relay
-            post_transaction_network_relay(settings, json_transaction)
+            _thread.start_new_thread(
+                post_transaction_network_relay, (settings, json_transaction))
 
             return json.dumps(json_transaction), status.HTTP_200_OK
 
@@ -71,6 +79,9 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             json_transactions, status_code = local_retrieve_transactions(
                 settings)
 
+            if status_code != status.HTTP_200_OK:
+                return {}, status.HTTP_400_BAD_REQUEST
+
             if json_transaction in json_transactions:
                 json_transactions.remove(json_transaction)
 
@@ -81,7 +92,8 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 return {}, status.HTTP_200_OK
 
             # network relay
-            remove_transaction_network_relay(settings, json_transaction)
+            _thread.start_new_thread(
+                remove_transaction_network_relay, (settings, json_transaction))
 
             return json.dumps(json_transaction), status.HTTP_200_OK
 

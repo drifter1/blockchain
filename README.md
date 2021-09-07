@@ -15,7 +15,7 @@ sudo apt install python
 ~~~
 and then the packages using python's package manager (pip):
 ~~~
-pip install flask flask_api requests mnemonic ecdsa
+pip install flask requests mnemonic ecdsa
 ~~~
 
 # REST API

@@ -12,6 +12,7 @@ from full_node.blockchain_endpoints import blockchain_endpoints
 from full_node.transaction_endpoints import transaction_endpoints
 from full_node.utxo_endpoints import utxo_endpoints
 
+from common.block_header import json_block_header_and_transactions_to_block
 from common.blockchain import Blockchain, json_construct_blockchain_info, json_destruct_blockchain_info
 from common.wallet import Wallet, json_construct_wallet
 
@@ -20,7 +21,7 @@ from common.node_update import update_nodes
 from common.node_requests import local_retrieve_nodes
 
 from common.blockchain_requests import general_retrieve_blockchain_info, local_retrieve_blockchain_info
-from common.block_requests import general_retrieve_block, local_create_block
+from common.block_requests import general_retrieve_block, general_retrieve_block_transactions, local_create_block
 from common.transaction_requests import general_retrieve_transactions, local_post_transaction
 
 
@@ -130,22 +131,32 @@ def network_sync():
     if local_blockchain_info.height != blockchain_info.height:
         for height in (local_blockchain_info.height + 1,  blockchain_info.height + 1):
 
-            # retrieve block
-            json_block, status_code = general_retrieve_block(
+            # retrieve block header
+            json_block_header, status_code = general_retrieve_block(
                 settings, json_node, height)
+
+            # retrieve block transactions
+            json_block_transactions, status_code = general_retrieve_block_transactions(
+                settings, json_node, height)
+
+            print(json_block_transactions)
+
+            # construct block
+            json_block = json_block_header_and_transactions_to_block(
+                json_block_header, json_block_transactions)
 
             # post block
             local_create_block(settings, json_block)
 
-            # retrieve transactions
-            transactions_file = open(settings.transactions_path, "w")
-            transactions_file.write("[]")
-            transactions_file.close()
-            json_transactions, status_code = general_retrieve_transactions(
-                settings, json_node)
+        # retrieve transactions
+        transactions_file = open(settings.transactions_path, "w")
+        transactions_file.write("[]")
+        transactions_file.close()
+        json_transactions, status_code = general_retrieve_transactions(
+            settings, json_node)
 
-            for json_transaction in json_transactions:
-                local_post_transaction(settings, json_transaction)
+        for json_transaction in json_transactions:
+            local_post_transaction(settings, json_transaction)
 
 
 # client arguments

@@ -63,8 +63,8 @@ def create_and_post_blocks():
         json_transactions, status_code = general_retrieve_transactions(
             settings, json_node)
 
-        # retrieve last block
-        json_last_block, status_code = general_retrieve_last_block(
+        # retrieve last block header
+        json_last_block_header, status_code = general_retrieve_last_block(
             settings, json_node)
 
         # create block
@@ -72,9 +72,9 @@ def create_and_post_blocks():
 
         # if not first block
         if status_code == 200:
-            block.height = json_last_block["height"] + 1
-            block.prev_hash = json_last_block["hash"]
-            block.reward = json_last_block["reward"]
+            block.height = json_last_block_header["height"] + 1
+            block.prev_hash = json_last_block_header["hash"]
+            block.reward = json_last_block_header["reward"]
         else:
             block.reward = json_blockchain_info["block_reward"]
 

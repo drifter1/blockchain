@@ -8,6 +8,7 @@ from full_node.block_validation import check_previous_block, recalculate_and_che
 from full_node.network_relay import create_block_network_relay
 
 from common.block import json_block_is_valid
+from common.block_header import json_block_header_is_valid, json_block_to_block_header
 from common.blockchain import AddressBalancePair, json_blockchain_info_is_valid, json_destruct_blockchain_info, json_construct_blockchain_info
 from common.utxo import UTXO_Output, json_construct_utxo_output
 
@@ -26,7 +27,9 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 open(settings.block_file_path + str(bid) + ".json", "r"))
 
             if json_block_is_valid(json_block):
-                return json.dumps(json_block), 200
+                json_block_header = json_block_to_block_header(json_block)
+
+                return json.dumps(json_block_header), 200
             else:
                 return {}, 400
         except:
@@ -53,7 +56,9 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 open(settings.block_file_path + str(height) + ".json", "r"))
 
             if json_block_is_valid(json_block):
-                return json.dumps(json_block), 200
+                json_block_header = json_block_to_block_header(json_block)
+
+                return json.dumps(json_block_header), 200
             else:
                 return {}, 400
         except:
@@ -61,9 +66,10 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/blocks/<int:bid>/transactions/', methods=['GET'])
     def retrieve_block_transactions(bid):
-        json_block, status_code = local_retrieve_block(settings, bid)
-
-        if status_code != 200:
+        try:
+            json_block = json.load(
+                open(settings.block_file_path + str(bid) + ".json", "r"))
+        except:
             return {}, 400
 
         if json_block_is_valid(json_block):
@@ -147,11 +153,11 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         if json_block_is_valid(json_block):
 
             # check if block already exists
-            json_block_local, status_code = local_retrieve_block(
+            json_block_header_local, status_code = local_retrieve_block(
                 settings, json_block["height"])
 
             if status_code == 200:
-                if json_block_is_valid(json_block_local):
+                if json_block_header_is_valid(json_block_header_local):
                     return {}, 200
 
             # check previous block hash and height

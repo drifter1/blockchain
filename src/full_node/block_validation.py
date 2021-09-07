@@ -13,7 +13,8 @@ def check_previous_block(settings: Full_Node_Settings, json_block: dict):
     try:
         block = json_destruct_block(json_block)
 
-        json_last_block, status_code = local_retrieve_last_block(settings)
+        json_last_block_header, status_code = local_retrieve_last_block(
+            settings)
 
         # block is first block if no block was returned
         if status_code != 200:
@@ -25,12 +26,10 @@ def check_previous_block(settings: Full_Node_Settings, json_block: dict):
 
         # previous block exists
         else:
-            last_block = json_destruct_block(json_last_block)
-
-            if not last_block.hash == block.prev_hash:
+            if not json_last_block_header["hash"] == block.prev_hash:
                 return False
 
-            if not last_block.height + 1 == block.height:
+            if not json_last_block_header["height"] + 1 == block.height:
                 return False
     except:
         return False

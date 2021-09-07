@@ -139,14 +139,28 @@ sign_input(input0, private_key)
 output0 = Output(
     index=0,
     address="0x60a192daca0804e113d6e6d41852c611be5de0bf",
-    value=input0.output_value - 0.001
+    value=0.3
+)
+calculate_output_hash(output0)
+
+output1 = Output(
+    index=1,
+    address="0xb24e0a3dbf9095d62418a86462792855aa24ba16",
+    value=0.2
+)
+calculate_output_hash(output0)
+
+output2 = Output(
+    index=2,
+    address=address,
+    value=input0.output_value - output0.value - output1.value - 0.001
 )
 calculate_output_hash(output0)
 
 transaction = Transaction(
     inputs=[input0],
-    outputs=[output0],
-    value=output0.value,
+    outputs=[output0, output1, output2],
+    value=input0.output_value - 0.001,
     fee=0.001
 )
 calculate_transaction_hash(transaction)

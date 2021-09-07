@@ -1,0 +1,39 @@
+import json
+import random
+
+from common.node import json_construct_node
+from common.settings import Node_Settings
+
+
+class Miner_Settings(Node_Settings):
+    def __init__(self, ip_address: str = None, port: int = None, directory: str = None, nodes_filename: str = None, update_interval: int = None, request_timeout: float = None, known_nodes_limit: int = None, main_dns_server_ip_address: str = None, main_dns_server_port: int = None, reward_address: str = None):
+
+        # load defaults
+        f = open("../defaults/miner_defaults.json")
+        miner_defaults = json.load(f)
+        f.close()
+
+        self.ip_address = ip_address if (
+            ip_address != None) else miner_defaults["default_ip_address"]
+        self.port = port if (port != None) else random.randrange(
+            miner_defaults["port_min"], miner_defaults["port_max"])
+        self.json_node = json_construct_node(self.ip_address, self.port)
+        self.directory = directory if (
+            directory != None) else miner_defaults["default_directory"]
+        self.nodes_path = self.directory + "/" + nodes_filename if (
+            nodes_filename != None) else self.directory + "/" + miner_defaults["default_nodes_filename"]
+        self.update_interval = update_interval if (
+            update_interval != None) else miner_defaults["default_update_interval"]
+        self.request_timeout = request_timeout if (
+            request_timeout != None) else miner_defaults["default_request_timeout"]
+        self.known_nodes_limit = known_nodes_limit if(
+            known_nodes_limit != None) else miner_defaults["default_known_nodes_limit"]
+        self.known_nodes = 0
+        self.main_dns_server_ip_address = main_dns_server_ip_address if(
+            main_dns_server_ip_address != None) else miner_defaults["main_dns_server_ip_address"]
+        self.main_dns_server_port = main_dns_server_port if (
+            main_dns_server_port != None) else miner_defaults["main_dns_server_port"]
+        self.main_dns_server_json_node = json_construct_node(
+            self.main_dns_server_ip_address, self.main_dns_server_port)
+        self.reward_address = reward_address if (
+            reward_address != None) else miner_defaults["default_reward_address"]

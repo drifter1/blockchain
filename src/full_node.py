@@ -1,6 +1,5 @@
 from argparse import ArgumentParser
 from flask import Flask
-from flask_api import status
 import os
 import _thread
 import time
@@ -98,7 +97,7 @@ def network_sync():
 
     json_nodes, status_code = local_retrieve_nodes(settings)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         print("Error in local nodes retrieval!")
         exit()
 
@@ -106,7 +105,7 @@ def network_sync():
     json_local_blockchain_info, status_code = local_retrieve_blockchain_info(
         settings)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         print("Error in local blockchain info retrieval!")
         exit()
 
@@ -120,7 +119,7 @@ def network_sync():
         json_blockchain_info, status_code = general_retrieve_blockchain_info(
             settings, json_node)
 
-        if status_code != status.HTTP_200_OK:
+        if status_code != 200:
             return
     except:
         return

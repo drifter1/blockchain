@@ -1,4 +1,3 @@
-from flask_api import status
 
 from full_node.settings import Full_Node_Settings
 from full_node.transaction_validation import check_transaction_input
@@ -17,7 +16,7 @@ def check_previous_block(settings: Full_Node_Settings, json_block: dict):
         json_last_block, status_code = local_retrieve_last_block(settings)
 
         # block is first block if no block was returned
-        if status_code != status.HTTP_200_OK:
+        if status_code != 200:
             if not block.height == 0:
                 return False
 

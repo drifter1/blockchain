@@ -1,4 +1,3 @@
-from flask_api import status
 import time
 
 from common.settings import Node_Settings
@@ -15,7 +14,7 @@ def check_known_nodes(settings: Node_Settings, opt_json_node: dict):
     '''
     json_nodes, status_code = local_retrieve_nodes(settings)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         print("Error in local nodes retrieval!")
         exit()
 
@@ -29,7 +28,7 @@ def check_known_nodes(settings: Node_Settings, opt_json_node: dict):
 
     json_nodes, status_code = local_retrieve_nodes(settings)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         print("Error in local nodes retrieval!")
         exit()
 
@@ -48,7 +47,7 @@ def retrieve_known_nodes_connections(settings: Node_Settings, opt_json_node: dic
     '''
     json_nodes, status_code = local_retrieve_nodes(settings)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         print("Error in local nodes retrieval!")
         exit()
 
@@ -57,7 +56,7 @@ def retrieve_known_nodes_connections(settings: Node_Settings, opt_json_node: dic
             known_nodes, status_code = general_retrieve_nodes(
                 settings, json_node, opt_json_node)
 
-            if status_code != status.HTTP_200_OK:
+            if status_code != 200:
                 continue
 
             for known_node in known_nodes:
@@ -68,7 +67,7 @@ def retrieve_known_nodes_connections(settings: Node_Settings, opt_json_node: dic
 
     json_nodes, status_code = local_retrieve_nodes(settings)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         print("Error in local nodes retrieval!")
         exit()
 
@@ -89,7 +88,7 @@ def contact_dns_server(settings: Node_Settings, opt_json_node: dict):
         json_nodes, status_code = general_retrieve_nodes(
             settings, settings.main_dns_server_json_node, opt_json_node)
 
-        if status_code != status.HTTP_200_OK:
+        if status_code != 200:
             print("DNS Server is unreachable!")
             return
 

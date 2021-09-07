@@ -1,5 +1,4 @@
 import requests
-from flask_api import status
 
 from common.settings import Node_Settings
 from common.node import json_destruct_node
@@ -36,7 +35,7 @@ def general_get_request(settings: Node_Settings, target_node: dict, url_path: st
         response = requests.get(url=endpoint_url, json=json_data,
                                 timeout=settings.request_timeout)
     except:
-        return {}, status.HTTP_400_BAD_REQUEST
+        return {}, 400
 
     return response.json(), response.status_code
 
@@ -48,7 +47,7 @@ def general_post_request(settings: Node_Settings, target_node: dict, url_path: s
         response = requests.post(url=endpoint_url, json=json_data,
                                  timeout=settings.request_timeout)
     except:
-        return {}, status.HTTP_400_BAD_REQUEST
+        return {}, 400
 
     return response.json(), response.status_code
 
@@ -60,7 +59,7 @@ def general_put_request(settings: Node_Settings, target_node: dict, url_path: st
         response = requests.put(url=endpoint_url, json=json_data,
                                 timeout=settings.request_timeout)
     except:
-        return {}, status.HTTP_400_BAD_REQUEST
+        return {}, 400
 
     return response.json(), response.status_code
 
@@ -72,6 +71,6 @@ def general_delete_request(settings: Node_Settings, target_node: dict, url_path:
         response = requests.delete(url=endpoint_url, json=json_data,
                                    timeout=settings.request_timeout)
     except:
-        return {}, status.HTTP_400_BAD_REQUEST
+        return {}, 400
 
     return response.json(), response.status_code

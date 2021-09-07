@@ -1,6 +1,5 @@
 from argparse import ArgumentParser
 from flask import Flask
-from flask_api import status
 import os
 import time
 import _thread
@@ -46,7 +45,7 @@ def update_nodes():
 
         json_nodes, status_code = local_retrieve_nodes(settings)
 
-        if status_code != status.HTTP_200_OK:
+        if status_code != 200:
             print("Error in local nodes retrieval!")
             exit()
 

@@ -1,5 +1,4 @@
 
-from flask_api import status
 import _thread
 
 from common.settings import Node_Settings
@@ -11,7 +10,7 @@ from common.transaction_requests import general_post_transaction, general_remove
 def general_network_relay(settings: Node_Settings, function: exec, json_data: dict):
     json_nodes, status_code = local_retrieve_nodes(settings)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         return
 
     for json_node in json_nodes:

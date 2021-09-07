@@ -1,4 +1,3 @@
-from flask_api import status
 import os
 import time
 import json
@@ -80,7 +79,7 @@ setup_files()
 json_nodes, status_code = general_retrieve_nodes(
     settings, settings.main_dns_server_json_node)
 
-if status_code != status.HTTP_200_OK:
+if status_code != 200:
     exit()
 
 json_node = json_nodes[0]

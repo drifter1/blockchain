@@ -1,5 +1,4 @@
 from binascii import unhexlify
-from flask_api import status
 
 from full_node.settings import Full_Node_Settings
 
@@ -26,7 +25,7 @@ def check_transaction_input(settings: Full_Node_Settings, json_transaction_input
     json_utxo_output, status_code = local_retrieve_utxo_output_from_address_and_transaction_hash(
         settings, transaction_input.output_address, transaction_input.transaction_hash)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         return False
 
     if not json_utxo_output_is_valid(json_utxo_output):
@@ -38,7 +37,7 @@ def check_transaction_input(settings: Full_Node_Settings, json_transaction_input
     json_block_transaction_output, status_code = local_retrieve_block_transaction_output(
         settings, utxo_output.block_height, utxo_output.transaction_index, utxo_output.output_index)
 
-    if status_code != status.HTTP_200_OK:
+    if status_code != 200:
         return False
 
     block_transaction_output = json_destruct_output(

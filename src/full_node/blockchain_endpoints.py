@@ -1,5 +1,4 @@
 from flask import Flask, request
-from flask_api import status
 import json
 
 from full_node.settings import Full_Node_Settings
@@ -13,9 +12,9 @@ def blockchain_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         try:
             json_blockchain = json.load(open(settings.blockchain_path, "r"))
 
-            return json.dumps(json_blockchain), status.HTTP_200_OK
+            return json.dumps(json_blockchain), 200
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blockchain/', methods=['PUT'])
     def update_blockchain_info():
@@ -23,7 +22,7 @@ def blockchain_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             json_blockchain_old = json.load(
                 open(settings.blockchain_path, "r"))
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
         json_blockchain_new = request.get_json()
 
@@ -32,6 +31,6 @@ def blockchain_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             json.dump(obj=json_blockchain_new, fp=open(
                 settings.blockchain_path, "w"))
 
-            return json.dumps(json_blockchain_new), status.HTTP_200_OK
+            return json.dumps(json_blockchain_new), 200
 
-        return json.dumps(json_blockchain_old), status.HTTP_200_OK
+        return json.dumps(json_blockchain_old), 200

@@ -4,7 +4,6 @@ Educational Python Implementation of a Blockchain
 # Prerequisites
 - [Python](https://www.python.org/)
 - [Flask](https://flask.palletsprojects.com/)
-- [Flask API](https://flask-api.github.io/flask-api/)
 - [Requests](https://docs.python-requests.org/)
 - [Mnemonic](https://pypi.org/project/mnemonic/0.20/) 
 - [ECDSA](https://pypi.org/project/ecdsa/)

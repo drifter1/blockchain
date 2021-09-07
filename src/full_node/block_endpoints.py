@@ -1,5 +1,4 @@
 from flask import Flask, request
-from flask_api import status
 import json
 import os
 import _thread
@@ -27,11 +26,11 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 open(settings.block_file_path + str(bid) + ".json", "r"))
 
             if json_block_is_valid(json_block):
-                return json.dumps(json_block), status.HTTP_200_OK
+                return json.dumps(json_block), 200
             else:
-                return {}, status.HTTP_400_BAD_REQUEST
+                return {}, 400
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blocks/last/', methods=['GET'])
     def retrieve_last_block():
@@ -39,11 +38,11 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         json_blockchain_info, status_code = local_retrieve_blockchain_info(
             settings)
 
-        if status_code != status.HTTP_200_OK:
-            return {}, status.HTTP_400_BAD_REQUEST
+        if status_code != 200:
+            return {}, 400
 
         if not json_blockchain_info_is_valid(json_blockchain_info):
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
         # blockchain height
         height = json_blockchain_info["height"]
@@ -54,91 +53,91 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 open(settings.block_file_path + str(height) + ".json", "r"))
 
             if json_block_is_valid(json_block):
-                return json.dumps(json_block), status.HTTP_200_OK
+                return json.dumps(json_block), 200
             else:
-                return {}, status.HTTP_400_BAD_REQUEST
+                return {}, 400
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blocks/<int:bid>/transactions/', methods=['GET'])
     def retrieve_block_transactions(bid):
         json_block, status_code = local_retrieve_block(settings, bid)
 
-        if status_code != status.HTTP_200_OK:
-            return {}, status.HTTP_400_BAD_REQUEST
+        if status_code != 200:
+            return {}, 400
 
         if json_block_is_valid(json_block):
             if "transactions" in json_block.keys():
-                return json.dumps(json_block["transactions"]), status.HTTP_200_OK
+                return json.dumps(json_block["transactions"]), 200
             else:
-                return {}, status.HTTP_400_BAD_REQUEST
+                return {}, 400
         else:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blocks/<int:bid>/transactions/<int:tid>/', methods=['GET'])
     def retrieve_block_transaction(bid, tid):
         json_transactions, status_code = local_retrieve_block_transactions(
             settings, bid)
 
-        if status_code != status.HTTP_200_OK:
-            return {}, status.HTTP_400_BAD_REQUEST
+        if status_code != 200:
+            return {}, 400
 
         try:
-            return json.dumps(json_transactions[tid]), status.HTTP_200_OK
+            return json.dumps(json_transactions[tid]), 200
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blocks/<int:bid>/transactions/<int:tid>/inputs/', methods=['GET'])
     def retrieve_block_transaction_inputs(bid, tid):
         json_transaction, status_code = local_retrieve_block_transaction(
             settings, bid, tid)
 
-        if status_code != status.HTTP_200_OK:
-            return {}, status.HTTP_400_BAD_REQUEST
+        if status_code != 200:
+            return {}, 400
 
         try:
-            return json.dumps(json_transaction["inputs"]), status.HTTP_200_OK
+            return json.dumps(json_transaction["inputs"]), 200
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blocks/<int:bid>/transactions/<int:tid>/inputs/<int:iid>/', methods=['GET'])
     def retrieve_block_transaction_input(bid, tid, iid):
         json_transaction_inputs, status_code = local_retrieve_block_transaction_inputs(
             settings, bid, tid)
 
-        if status_code != status.HTTP_200_OK:
-            return {}, status.HTTP_400_BAD_REQUEST
+        if status_code != 200:
+            return {}, 400
 
         try:
-            return json.dumps(json_transaction_inputs[iid]), status.HTTP_200_OK
+            return json.dumps(json_transaction_inputs[iid]), 200
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blocks/<int:bid>/transactions/<int:tid>/outputs/', methods=['GET'])
     def retrieve_block_transaction_outputs(bid, tid):
         json_transaction, status_code = local_retrieve_block_transaction(
             settings, bid, tid)
 
-        if status_code != status.HTTP_200_OK:
-            return {}, status.HTTP_400_BAD_REQUEST
+        if status_code != 200:
+            return {}, 400
 
         try:
-            return json.dumps(json_transaction["outputs"]), status.HTTP_200_OK
+            return json.dumps(json_transaction["outputs"]), 200
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blocks/<int:bid>/transactions/<int:tid>/outputs/<int:oid>/', methods=['GET'])
     def retrieve_block_transaction_output(bid, tid, oid):
         json_transaction_outputs, status_code = local_retrieve_block_transaction_outputs(
             settings, bid, tid)
 
-        if status_code != status.HTTP_200_OK:
-            return {}, status.HTTP_400_BAD_REQUEST
+        if status_code != 200:
+            return {}, 400
 
         try:
-            return json.dumps(json_transaction_outputs[oid]), status.HTTP_200_OK
+            return json.dumps(json_transaction_outputs[oid]), 200
         except:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
     @app.route('/blocks/', methods=['POST'])
     def create_block():
@@ -151,21 +150,21 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             json_block_local, status_code = local_retrieve_block(
                 settings, json_block["height"])
 
-            if status_code == status.HTTP_200_OK:
+            if status_code == 200:
                 if json_block_is_valid(json_block_local):
-                    return {}, status.HTTP_200_OK
+                    return {}, 200
 
             # check previous block hash and height
             if not check_previous_block(settings, json_block):
-                return {}, status.HTTP_400_BAD_REQUEST
+                return {}, 400
 
             # recalculate and check hash
             if not recalculate_and_check_block_hash(json_block):
-                return {}, status.HTTP_400_BAD_REQUEST
+                return {}, 400
 
             # check transactions
             if not check_block_transactions(settings, json_block["transactions"]):
-                return {}, status.HTTP_400_BAD_REQUEST
+                return {}, 400
 
             # missing consensus
 
@@ -177,10 +176,10 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             _thread.start_new_thread(
                 create_block_relay, (settings, json_block))
 
-            return json.dumps(json_block), status.HTTP_200_OK
+            return json.dumps(json_block), 200
 
         else:
-            return {}, status.HTTP_400_BAD_REQUEST
+            return {}, 400
 
 
 def create_block_relay(settings: Full_Node_Settings, json_block: dict):

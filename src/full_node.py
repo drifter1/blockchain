@@ -21,7 +21,7 @@ from common.node_update import update_nodes
 from common.node_requests import local_retrieve_nodes
 
 from common.blockchain_requests import general_retrieve_blockchain_info, local_retrieve_blockchain_info
-from common.block_requests import general_retrieve_block, general_retrieve_block_transactions, local_create_block
+from common.block_requests import general_retrieve_block_header, general_retrieve_block_transactions, local_create_block
 from common.transaction_requests import general_retrieve_transactions, local_post_transaction
 
 
@@ -129,18 +129,16 @@ def network_sync():
 
     # check if blockchain is up to date
     if local_blockchain_info.height != blockchain_info.height:
-        for height in (local_blockchain_info.height + 1,  blockchain_info.height + 1):
+        for height in (local_blockchain_info.height + 1,  blockchain_info.height):
 
             # retrieve block header
-            json_block_header, status_code = general_retrieve_block(
+            json_block_header, status_code = general_retrieve_block_header(
                 settings, json_node, height)
 
             # retrieve block transactions
             json_block_transactions, status_code = general_retrieve_block_transactions(
                 settings, json_node, height)
-
-            print(json_block_transactions)
-
+            
             # construct block
             json_block = json_block_header_and_transactions_to_block(
                 json_block_header, json_block_transactions)
@@ -148,15 +146,11 @@ def network_sync():
             # post block
             local_create_block(settings, json_block)
 
-        # retrieve transactions
-        transactions_file = open(settings.transactions_path, "w")
-        transactions_file.write("[]")
-        transactions_file.close()
+        # retrieve transactions       
         json_transactions, status_code = general_retrieve_transactions(
             settings, json_node)
 
-        for json_transaction in json_transactions:
-            local_post_transaction(settings, json_transaction)
+        json.dump(obj=json_transactions, fp=open(settings.transactions_path, "w"))
 
 
 # client arguments

@@ -14,7 +14,7 @@ from common.block import Block, json_construct_block, calculate_block_hash
 from common.transaction import Input, Output, Transaction, json_destruct_transaction, calculate_output_hash, calculate_transaction_hash
 
 from common.blockchain_requests import general_retrieve_blockchain_info
-from common.block_requests import general_retrieve_last_block, general_create_block
+from common.block_requests import general_retrieve_last_block_header, general_create_block
 from common.node_requests import local_retrieve_nodes
 from common.transaction_requests import general_retrieve_transactions
 
@@ -64,7 +64,7 @@ def create_and_post_blocks():
             settings, json_node)
 
         # retrieve last block header
-        json_last_block_header, status_code = general_retrieve_last_block(
+        json_last_block_header, status_code = general_retrieve_last_block_header(
             settings, json_node)
 
         # create block

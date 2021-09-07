@@ -3,7 +3,7 @@ from full_node.settings import Full_Node_Settings
 from full_node.transaction_validation import check_transaction_input
 
 from common.block import json_destruct_block, calculate_block_hash
-from common.block_requests import local_retrieve_last_block
+from common.block_requests import local_retrieve_last_block_header
 
 
 def check_previous_block(settings: Full_Node_Settings, json_block: dict):
@@ -13,7 +13,7 @@ def check_previous_block(settings: Full_Node_Settings, json_block: dict):
     try:
         block = json_destruct_block(json_block)
 
-        json_last_block_header, status_code = local_retrieve_last_block(
+        json_last_block_header, status_code = local_retrieve_last_block_header(
             settings)
 
         # block is first block if no block was returned

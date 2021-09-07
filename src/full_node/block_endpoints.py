@@ -12,7 +12,7 @@ from common.block_header import json_block_header_is_valid, json_block_to_block_
 from common.blockchain import AddressBalancePair, json_blockchain_info_is_valid, json_destruct_blockchain_info, json_construct_blockchain_info
 from common.utxo import UTXO_Output, json_construct_utxo_output
 
-from common.block_requests import local_retrieve_block, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
+from common.block_requests import local_retrieve_block_header, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
 from common.blockchain_requests import local_retrieve_blockchain_info, local_update_blockchain_info
 from common.transaction_requests import local_remove_transaction
 from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_address, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
@@ -21,7 +21,7 @@ from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_a
 def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/blocks/<int:bid>/', methods=['GET'])
-    def retrieve_block(bid):
+    def retrieve_block_header(bid):
         try:
             json_block = json.load(
                 open(settings.block_file_path + str(bid) + ".json", "r"))
@@ -36,7 +36,7 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             return {}, 400
 
     @app.route('/blocks/last/', methods=['GET'])
-    def retrieve_last_block():
+    def retrieve_last_block_header():
         # retrieve blockchain info
         json_blockchain_info, status_code = local_retrieve_blockchain_info(
             settings)
@@ -153,7 +153,7 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         if json_block_is_valid(json_block):
 
             # check if block already exists
-            json_block_header_local, status_code = local_retrieve_block(
+            json_block_header_local, status_code = local_retrieve_block_header(
                 settings, json_block["height"])
 
             if status_code == 200:

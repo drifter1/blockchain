@@ -13,6 +13,7 @@ from common.node_update import update_nodes
 from common.block import Block, json_construct_block, calculate_block_hash
 from common.transaction import Input, Output, Transaction, json_destruct_transaction, calculate_output_hash, calculate_transaction_hash
 
+from common.blockchain_requests import general_retrieve_blockchain_info
 from common.block_requests import general_retrieve_last_block, general_create_block
 from common.node_requests import local_retrieve_nodes
 from common.transaction_requests import general_retrieve_transactions
@@ -54,6 +55,10 @@ def create_and_post_blocks():
 
         json_node = json_nodes[0]
 
+        # retrieve blockchain info
+        json_blockchain_info, status_code = general_retrieve_blockchain_info(
+            settings, json_node)
+
         # retrieve unconfirmed transactions
         json_transactions, status_code = general_retrieve_transactions(
             settings, json_node)
@@ -69,10 +74,12 @@ def create_and_post_blocks():
         if status_code == 200:
             block.height = json_last_block["height"] + 1
             block.prev_hash = json_last_block["hash"]
+            block.reward = json_last_block["reward"]
+        else:
+            block.reward = json_blockchain_info["block_reward"]
 
         # headers
         block.creator = settings.reward_address
-        block.reward = json_last_block["reward"]
         block.transaction_count = len(json_transactions) + 1
         block.fees = 0
         try:

@@ -41,6 +41,7 @@ pip install flask requests mnemonic ecdsa
 | /transactions/tid/   | GET        | -                 | Transaction           |  Retrieve unconfirmed transaction by tid    |
 | /transactions/       | POST       | Transaction       | Transaction           |  Post new transaction                       |
 | /transactions/       | DELETE     | Transaction       | Transaction           |  Remove posted transaction                  |
+
 For tid both the index and the hash can be used.
 
 ## Block Endpoints
@@ -54,7 +55,9 @@ For tid both the index and the hash can be used.
 | /blocks/bid/transactions/tid/outputs/        | GET        | -                 | Transaction output array   |  Retrieve block transaction outputs by bid-tid pair   |
 | /blocks/bid/transactions/tid/outputs/oid/    | GET        | -                 | Transaction output         |  Retrieve block transaction output by bid-tid-oid     |
 | /blocks/                                     | POST       | Block             | Block                      |  Create new block                                     |
+
 Using "last" as the bid returns information for the last block in the chain. Otherwise, bid is the block height.
+
 For tid both the index and the hash can be used.
 
 ## UTXO Endpoints

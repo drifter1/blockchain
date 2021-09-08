@@ -5,8 +5,13 @@ from common.requests import general_delete_request, general_get_request, general
 
 # local requests
 
-def local_retrieve_transactions(settings: Node_Settings):
+def local_retrieve_transactions_header(settings: Node_Settings):
     return local_get_request(settings, "/transactions/", {})
+
+
+def local_retrieve_transaction(settings: Node_Settings, tid: str):
+    url_path = "/transactions/" + str(tid) + "/"
+    return local_get_request(settings, url_path, {})
 
 
 def local_post_transaction(settings: Node_Settings, json_transaction: dict):
@@ -19,8 +24,13 @@ def local_remove_transaction(settings: Node_Settings, json_transaction: dict):
 # general requests
 
 
-def general_retrieve_transactions(settings: Node_Settings, target_node: dict):
+def general_retrieve_transactions_header(settings: Node_Settings, target_node: dict):
     return general_get_request(settings, target_node, "/transactions/", {})
+
+
+def general_retrieve_transaction(settings: Node_Settings, target_node: dict, tid: str):
+    url_path = "/transactions/" + str(tid) + "/"
+    return general_get_request(settings, target_node, url_path, {})
 
 
 def general_post_transaction(settings: Node_Settings, target_node: dict, json_transaction: dict):

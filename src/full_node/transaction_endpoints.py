@@ -7,19 +7,47 @@ from full_node.transaction_validation import check_transaction_inputs, recalcula
 from full_node.network_relay import post_transaction_network_relay, remove_transaction_network_relay
 
 from common.transaction import json_transaction_is_valid
-from common.transaction_requests import local_retrieve_transactions
-
+from common.transactions_header import json_transactions_to_transactions_header
 
 def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/transactions/', methods=['GET'])
-    def retrieve_transactions():
+    def retrieve_transactions_header():
         try:
             json_transactions = json.load(
                 open(settings.transactions_path, "r"))
-            return json.dumps(json_transactions), 200
+
+            json_transaction_header = json_transactions_to_transactions_header(
+                json_transactions)
+
+            return json.dumps(json_transaction_header), 200
         except:
             return {}, 400
+
+    @app.route('/transactions/<string:tid>/', methods=['GET'])
+    def retrieve_transaction(tid):
+        try:
+            json_transactions = json.load(
+                open(settings.transactions_path, "r"))
+        except:
+            return {}, 400
+
+        # if transaction index
+        try:
+            transaction_index = int(tid)
+
+            return json.dumps(json_transactions[transaction_index]), 200
+        except:
+            pass
+
+        # if transaction hash
+        for json_transaction in json_transactions:
+            transaction_hash = json_transaction["hash"]
+
+            if transaction_hash == tid:
+                return json.dumps(json_transaction), 200
+
+        return {}, 400
 
     @app.route('/transactions/', methods=['POST'])
     def post_transaction():
@@ -46,10 +74,10 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 return {}, 400
 
             # add transaction if not already in transactions
-            json_transactions, status_code = local_retrieve_transactions(
-                settings)
-
-            if status_code != 200:
+            try:
+                json_transactions: list = json.load(
+                    open(settings.transactions_path, "r"))
+            except:
                 return {}, 400
 
             if json_transaction not in json_transactions:
@@ -75,10 +103,10 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         json_transaction = request.get_json()
 
         if json_transaction_is_valid(json_transaction):
-            json_transactions, status_code = local_retrieve_transactions(
-                settings)
-
-            if status_code != 200:
+            try:
+                json_transactions: list = json.load(
+                    open(settings.transactions_path, "r"))
+            except:
                 return {}, 400
 
             if json_transaction in json_transactions:

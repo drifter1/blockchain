@@ -21,8 +21,8 @@ from common.node_update import update_nodes
 from common.node_requests import local_retrieve_nodes
 
 from common.blockchain_requests import general_retrieve_blockchain_info, local_retrieve_blockchain_info
-from common.block_requests import general_retrieve_block_header, general_retrieve_block_transactions, local_create_block
-from common.transaction_requests import general_retrieve_transactions, local_post_transaction
+from common.block_requests import general_retrieve_block_header, general_retrieve_block_transactions_header, general_retrieve_block_transaction, local_create_block
+from common.transaction_requests import general_retrieve_transactions_header, general_retrieve_transaction
 
 
 def setup_files():
@@ -129,16 +129,26 @@ def network_sync():
 
     # check if blockchain is up to date
     if local_blockchain_info.height != blockchain_info.height:
-        for height in (local_blockchain_info.height + 1,  blockchain_info.height):
+        for height in range(local_blockchain_info.height + 1,  blockchain_info.height + 1):
 
             # retrieve block header
             json_block_header, status_code = general_retrieve_block_header(
                 settings, json_node, height)
 
-            # retrieve block transactions
-            json_block_transactions, status_code = general_retrieve_block_transactions(
+            # retrieve block transactions header
+            json_block_transactions_header, status_code = general_retrieve_block_transactions_header(
                 settings, json_node, height)
-            
+
+            transaction_count = json_block_transactions_header["transaction_count"]
+
+            # retrieve transactions one-by-one
+            json_block_transactions = []
+            for tid in range(0, transaction_count):
+                json_transaction, status_code = general_retrieve_block_transaction(
+                    settings, json_node, height, tid)
+
+                json_block_transactions.append(json_transaction)
+
             # construct block
             json_block = json_block_header_and_transactions_to_block(
                 json_block_header, json_block_transactions)
@@ -146,11 +156,25 @@ def network_sync():
             # post block
             local_create_block(settings, json_block)
 
-        # retrieve transactions       
-        json_transactions, status_code = general_retrieve_transactions(
+            time.sleep(1)
+
+        # retrieve unconfirmed transactions header
+        json_transactions_header, status_code = general_retrieve_transactions_header(
             settings, json_node)
 
-        json.dump(obj=json_transactions, fp=open(settings.transactions_path, "w"))
+        transaction_count = json_transactions_header["transaction_count"]
+
+        # retrieve unconfirmed transactions one-by-one
+        json_transactions = []
+        for tid in range(0, transaction_count):
+            json_transaction, status_code = general_retrieve_transaction(
+                settings, json_node, tid)
+
+            json_transactions.append(json_transaction)
+
+        # update local file
+        json.dump(obj=json_transactions, fp=open(
+            settings.transactions_path, "w"))
 
 
 # client arguments

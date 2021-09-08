@@ -16,7 +16,7 @@ from common.transaction import Input, Output, Transaction, json_destruct_transac
 from common.blockchain_requests import general_retrieve_blockchain_info
 from common.block_requests import general_retrieve_last_block_header, general_create_block
 from common.node_requests import local_retrieve_nodes
-from common.transaction_requests import general_retrieve_transactions
+from common.transaction_requests import general_retrieve_transaction, general_retrieve_transactions_header
 
 
 def setup_files():
@@ -59,9 +59,19 @@ def create_and_post_blocks():
         json_blockchain_info, status_code = general_retrieve_blockchain_info(
             settings, json_node)
 
-        # retrieve unconfirmed transactions
-        json_transactions, status_code = general_retrieve_transactions(
+        # retrieve unconfirmed transactions header
+        json_transactions_header, status_code = general_retrieve_transactions_header(
             settings, json_node)
+
+        transaction_count = json_transactions_header["transaction_count"]
+
+        # retrieve unconfirmed transactions one-by-one
+        json_transactions = []
+        for tid in range(0, transaction_count):
+            json_transaction, status_code = general_retrieve_transaction(
+                settings, json_node, tid)
+
+            json_transactions.append(json_transaction)
 
         # retrieve last block header
         json_last_block_header, status_code = general_retrieve_last_block_header(

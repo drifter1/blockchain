@@ -10,9 +10,10 @@ from full_node.network_relay import create_block_network_relay
 from common.block import json_block_is_valid
 from common.block_header import json_block_header_is_valid, json_block_to_block_header
 from common.blockchain import AddressBalancePair, json_blockchain_info_is_valid, json_destruct_blockchain_info, json_construct_blockchain_info
+from common.transactions_header import json_transactions_to_transactions_header
 from common.utxo import UTXO_Output, json_construct_utxo_output
 
-from common.block_requests import local_retrieve_block_header, local_retrieve_block_transactions, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
+from common.block_requests import local_retrieve_block_header, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
 from common.blockchain_requests import local_retrieve_blockchain_info, local_update_blockchain_info
 from common.transaction_requests import local_remove_transaction
 from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_address, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
@@ -20,80 +21,87 @@ from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_a
 
 def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
-    @app.route('/blocks/<int:bid>/', methods=['GET'])
+    @app.route('/blocks/<string:bid>/', methods=['GET'])
     def retrieve_block_header(bid):
-        try:
-            json_block = json.load(
-                open(settings.block_file_path + str(bid) + ".json", "r"))
+        # retrieve last block
+        if bid == "last":
+            json_block = retrieve_last_block(settings)
 
             if json_block_is_valid(json_block):
                 json_block_header = json_block_to_block_header(json_block)
 
                 return json.dumps(json_block_header), 200
-            else:
-                return {}, 400
-        except:
-            return {}, 400
-
-    @app.route('/blocks/last/', methods=['GET'])
-    def retrieve_last_block_header():
-        # retrieve blockchain info
-        json_blockchain_info, status_code = local_retrieve_blockchain_info(
-            settings)
-
-        if status_code != 200:
-            return {}, 400
-
-        if not json_blockchain_info_is_valid(json_blockchain_info):
-            return {}, 400
-
-        # blockchain height
-        height = json_blockchain_info["height"]
-
-        # load last block
-        try:
-            json_block = json.load(
-                open(settings.block_file_path + str(height) + ".json", "r"))
-
-            if json_block_is_valid(json_block):
-                json_block_header = json_block_to_block_header(json_block)
-
-                return json.dumps(json_block_header), 200
-            else:
-                return {}, 400
-        except:
-            return {}, 400
-
-    @app.route('/blocks/<int:bid>/transactions/', methods=['GET'])
-    def retrieve_block_transactions(bid):
-        try:
-            json_block = json.load(
-                open(settings.block_file_path + str(bid) + ".json", "r"))
-        except:
-            return {}, 400
-
-        if json_block_is_valid(json_block):
-            if "transactions" in json_block.keys():
-                return json.dumps(json_block["transactions"]), 200
             else:
                 return {}, 400
         else:
+            try:
+                json_block = json.load(
+                    open(settings.block_file_path + bid + ".json", "r"))
+
+                if json_block_is_valid(json_block):
+                    json_block_header = json_block_to_block_header(json_block)
+
+                    return json.dumps(json_block_header), 200
+                else:
+                    return {}, 400
+            except:
+                return {}, 400
+
+    @app.route('/blocks/<string:bid>/transactions/', methods=['GET'])
+    def retrieve_block_transactions_header(bid):
+        # retrieve last block
+        if bid == "last":
+            json_block = retrieve_last_block(settings)
+        else:
+            try:
+                json_block = json.load(
+                    open(settings.block_file_path + str(bid) + ".json", "r"))
+            except:
+                return {}, 400
+
+        if json_block_is_valid(json_block):
+            json_transactions_header = json_transactions_to_transactions_header(
+                json_block["transactions"])
+
+            return json.dumps(json_transactions_header), 200
+        else:
             return {}, 400
 
-    @app.route('/blocks/<int:bid>/transactions/<int:tid>/', methods=['GET'])
+    @app.route('/blocks/<string:bid>/transactions/<string:tid>/', methods=['GET'])
     def retrieve_block_transaction(bid, tid):
-        json_transactions, status_code = local_retrieve_block_transactions(
-            settings, bid)
+        # retrieve last block
+        if bid == "last":
+            json_block = retrieve_last_block(settings)
+        else:
+            try:
+                json_block = json.load(
+                    open(settings.block_file_path + str(bid) + ".json", "r"))
+            except:
+                return {}, 400
 
-        if status_code != 200:
+        if json_block_is_valid(json_block):
+            json_transactions = json_block["transactions"]
+        else:
             return {}, 400
 
+        # if transaction index
         try:
-            return json.dumps(json_transactions[tid]), 200
-        except:
-            return {}, 400
+            transaction_index = int(tid)
 
-    @app.route('/blocks/<int:bid>/transactions/<int:tid>/inputs/', methods=['GET'])
+            return json.dumps(json_transactions[transaction_index]), 200
+        except:
+            pass
+
+        # if transaction hash
+        for json_transaction in json_transactions:
+            transaction_hash = json_transaction["hash"]
+
+            if transaction_hash == tid:
+                return json.dumps(json_transaction), 200
+
+        return {}, 400
+
+    @app.route('/blocks/<string:bid>/transactions/<string:tid>/inputs/', methods=['GET'])
     def retrieve_block_transaction_inputs(bid, tid):
         json_transaction, status_code = local_retrieve_block_transaction(
             settings, bid, tid)
@@ -106,7 +114,7 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         except:
             return {}, 400
 
-    @app.route('/blocks/<int:bid>/transactions/<int:tid>/inputs/<int:iid>/', methods=['GET'])
+    @app.route('/blocks/<string:bid>/transactions/<string:tid>/inputs/<int:iid>/', methods=['GET'])
     def retrieve_block_transaction_input(bid, tid, iid):
         json_transaction_inputs, status_code = local_retrieve_block_transaction_inputs(
             settings, bid, tid)
@@ -119,7 +127,7 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         except:
             return {}, 400
 
-    @app.route('/blocks/<int:bid>/transactions/<int:tid>/outputs/', methods=['GET'])
+    @app.route('/blocks/<string:bid>/transactions/<string:tid>/outputs/', methods=['GET'])
     def retrieve_block_transaction_outputs(bid, tid):
         json_transaction, status_code = local_retrieve_block_transaction(
             settings, bid, tid)
@@ -132,7 +140,7 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
         except:
             return {}, 400
 
-    @app.route('/blocks/<int:bid>/transactions/<int:tid>/outputs/<int:oid>/', methods=['GET'])
+    @app.route('/blocks/<string:bid>/transactions/<string:tid>/outputs/<int:oid>/', methods=['GET'])
     def retrieve_block_transaction_output(bid, tid, oid):
         json_transaction_outputs, status_code = local_retrieve_block_transaction_outputs(
             settings, bid, tid)
@@ -277,3 +285,27 @@ def create_block_relay(settings: Full_Node_Settings, json_block: dict):
     json_blockchain_info = json_construct_blockchain_info(
         blockchain_info)
     local_update_blockchain_info(settings, json_blockchain_info)
+
+
+def retrieve_last_block(settings: Full_Node_Settings):
+    # retrieve blockchain info
+    json_blockchain_info, status_code = local_retrieve_blockchain_info(
+        settings)
+
+    if status_code != 200:
+        return {}
+
+    if not json_blockchain_info_is_valid(json_blockchain_info):
+        return {}
+
+    # blockchain height
+    height = json_blockchain_info["height"]
+
+    # load last block
+    try:
+        json_block = json.load(
+            open(settings.block_file_path + str(height) + ".json", "r"))
+    except:
+        return {}
+
+    return json_block

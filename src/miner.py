@@ -15,7 +15,7 @@ from common.transaction import Input, Output, Transaction, json_destruct_transac
 
 from common.blockchain_requests import general_retrieve_blockchain_info
 from common.block_requests import general_retrieve_last_block_header, general_create_block
-from common.node_requests import local_retrieve_nodes
+from common.node_requests import local_retrieve_node, local_retrieve_nodes
 from common.transaction_requests import general_retrieve_transaction, general_retrieve_transactions_header
 
 
@@ -47,13 +47,11 @@ def create_and_post_blocks():
     time.sleep(2)
 
     while True:
-        # retrieve first known node
-        json_nodes, status_code = local_retrieve_nodes(settings)
+        # retrieve random known node
+        json_node, status_code = local_retrieve_node(settings, "random")
 
         if status_code != 200:
             exit()
-
-        json_node = json_nodes[0]
 
         # retrieve blockchain info
         json_blockchain_info, status_code = general_retrieve_blockchain_info(
@@ -135,6 +133,11 @@ def create_and_post_blocks():
         json_block = json_construct_block(block)
 
         # send block to all known nodes
+        json_nodes, status_code = local_retrieve_nodes(settings)
+
+        if status_code != 200:
+            exit()
+
         for json_node in json_nodes:
             general_create_block(settings, json_node, json_block)
 

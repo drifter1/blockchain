@@ -21,12 +21,15 @@ pip install flask requests mnemonic ecdsa
 # REST API
 
 ## Node Endpoints
-| Endpoint  | HTTP Verb | Request (JSON) | Response (JSON) |  Description                          |
-| :------   | :------:  | :-----------:  | :-----------:   |  :--------------------------------    |
-| /         | POST      | Node (opt.)    | Node            |  Check if node is reachable/online    |    
-| /nodes/   | GET       | Node (opt.)    | Nodes array     |  Retrieve all known nodes             |
-| /nodes/   | POST      | Node           | Nodes array     |  Add node to known nodes              |
-| /nodes/   | DELETE    | Node           | Nodes array     |  Remove node from known nodes         |
+| Endpoint      | HTTP Verb | Request (JSON) | Response (JSON) |  Description                          |
+| :----------   | :------:  | :-----------:  | :-----------:   |  :--------------------------------    |
+| /             | POST      | Node (opt.)    | Node            |  Check if node is reachable/online    |    
+| /nodes/       | GET       | Node (opt.)    | Nodes array     |  Retrieve all known nodes             |
+| /nodes/nid/   | GET       | -              | Node            |  Retrieve node by nid                 |
+| /nodes/       | POST      | Node           | Nodes array     |  Add node to known nodes              |
+| /nodes/       | DELETE    | Node           | Nodes array     |  Remove node from known nodes         |
+
+Using "random" as the nid returns a random node. Otherwise, nid is the node index.
 
 ## Blockchain Endpoints
 | Endpoint       | HTTP Verb | Request (JSON)    | Response (JSON)    |  Description                         |

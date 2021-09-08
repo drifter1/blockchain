@@ -9,6 +9,11 @@ def local_retrieve_nodes(settings: Node_Settings):
     return local_get_request(settings, "/nodes/", {})
 
 
+def local_retrieve_node(settings: Node_Settings, nid: str):
+    url_path = "/nodes/" + str(nid) + "/"
+    return local_get_request(settings, url_path, {})
+
+
 def local_add_node(settings: Node_Settings, json_node: dict):
     return local_post_request(settings, "/nodes/", json_node)
 
@@ -25,6 +30,11 @@ def general_connection_check(settings: Node_Settings, target_node: dict, opt_jso
 
 def general_retrieve_nodes(settings: Node_Settings, target_node: dict, opt_json_node: dict = {}):
     return general_get_request(settings, target_node, "/nodes/", opt_json_node)
+
+
+def general_retrieve_node(settings: Node_Settings, target_node: dict, nid: str):
+    url_path = "/nodes/" + str(nid) + "/"
+    return general_get_request(settings, target_node, url_path, {})
 
 
 def general_add_node(settings: Node_Settings, target_node: dict, json_node: dict):

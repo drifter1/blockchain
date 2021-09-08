@@ -11,7 +11,7 @@ from common.wallet import Wallet, json_construct_wallet, json_retrieve_address, 
 
 from common.block_requests import general_retrieve_block_transaction_output
 from common.transaction_requests import general_post_transaction
-from common.node_requests import general_retrieve_nodes
+from common.node_requests import general_retrieve_node
 from common.utxo_requests import general_retrieve_utxo_address
 
 # Setup Files Routine
@@ -77,15 +77,6 @@ settings = Full_Node_Settings(
 
 setup_files()
 
-# retrieve first known node from dns server
-json_nodes, status_code = general_retrieve_nodes(
-    settings, settings.main_dns_server_json_node)
-
-if status_code != 200:
-    exit()
-
-json_node = json_nodes[0]
-
 # load wallet information
 
 wallet_json = json.load(open(settings.wallet_path, "r"))
@@ -94,6 +85,13 @@ address = json_retrieve_address(wallet_json)
 private_key = json_retrieve_private_key(wallet_json)
 
 print(address)
+
+# retrieve random node from dns server
+json_node, status_code = general_retrieve_node(
+    settings, settings.main_dns_server_json_node, "random")
+
+if status_code != 200:
+    exit()
 
 # retrieve utxo for the wallet address
 

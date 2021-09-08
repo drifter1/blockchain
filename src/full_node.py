@@ -18,7 +18,7 @@ from common.wallet import Wallet, json_construct_wallet
 
 from common.node_endpoints import node_endpoints
 from common.node_update import update_nodes
-from common.node_requests import local_retrieve_nodes
+from common.node_requests import local_retrieve_node
 
 from common.blockchain_requests import general_retrieve_blockchain_info, local_retrieve_blockchain_info
 from common.block_requests import general_retrieve_block_header, general_retrieve_block_transactions_header, general_retrieve_block_transaction, local_create_block
@@ -90,17 +90,17 @@ def setup_files():
 
 def network_sync():
     '''
-        Contact first known node to check if local files are up-to-date.
+        Contact random known node to check if local files are up-to-date.
         If not then retrieve all the missing blocks and
         replace all local unconfirmed transactions.
     '''
     time.sleep(2)
 
-    json_nodes, status_code = local_retrieve_nodes(settings)
+    # random known node
+    json_node, status_code = local_retrieve_node(settings, "random")
 
     if status_code != 200:
-        print("Error in local nodes retrieval!")
-        exit()
+        return
 
     # retrieve local blockchain info
     json_local_blockchain_info, status_code = local_retrieve_blockchain_info(
@@ -115,8 +115,6 @@ def network_sync():
 
     # retrieve blockchain info from first known node
     try:
-        json_node = json_nodes[0]
-
         json_blockchain_info, status_code = general_retrieve_blockchain_info(
             settings, json_node)
 

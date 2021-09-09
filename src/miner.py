@@ -6,18 +6,18 @@ import time
 import _thread
 
 from miner.settings import Miner_Settings
+from miner.create_block import retrieve_unconfirmed_transactions, create_reward_transaction, solve_block
 
 from common.node_endpoints import node_endpoints
 from common.node_update import update_nodes
 
-from common.block import Block, json_construct_block, calculate_block_hash
+from common.block import Block, json_construct_block
 from common.block_header import json_block_to_block_header
-from common.transaction import Input, Output, Transaction, json_destruct_transaction, calculate_output_hash, calculate_transaction_hash
+from common.transaction import json_destruct_transaction
 
 from common.blockchain_requests import general_retrieve_blockchain_info
 from common.block_requests import general_retrieve_last_block_header, general_create_block
 from common.node_requests import local_retrieve_node, local_retrieve_nodes
-from common.transaction_requests import general_retrieve_transaction, general_retrieve_transactions_header
 
 
 def setup_files():
@@ -54,29 +54,22 @@ def create_and_post_blocks():
         if status_code != 200:
             exit()
 
+        print("Retrieving Information...")
+
         # retrieve blockchain info
         json_blockchain_info, status_code = general_retrieve_blockchain_info(
             settings, json_node)
 
-        # retrieve unconfirmed transactions header
-        json_transactions_header, status_code = general_retrieve_transactions_header(
+        # retrieve unconfirmed transactions
+        json_transactions = retrieve_unconfirmed_transactions(
             settings, json_node)
-
-        transaction_count = json_transactions_header["transaction_count"]
-
-        # retrieve unconfirmed transactions one-by-one
-        json_transactions = []
-        for tid in range(0, transaction_count):
-            json_transaction, status_code = general_retrieve_transaction(
-                settings, json_node, tid)
-
-            json_transactions.append(json_transaction)
 
         # retrieve last block header
         json_last_block_header, status_code = general_retrieve_last_block_header(
             settings, json_node)
 
         # create block
+        print("Creating block...")
         block = Block()
 
         # if not first block
@@ -99,23 +92,8 @@ def create_and_post_blocks():
             pass
 
         # reward transaction
-        reward_input = Input(
-            output_value=block.reward + block.fees
-        )
-
-        reward_output = Output(
-            address=settings.reward_address,
-            value=block.reward + block.fees
-        )
-        calculate_output_hash(reward_output)
-
-        reward_transaction = Transaction(
-            inputs=[reward_input],
-            outputs=[reward_output],
-            value=block.reward + block.fees,
-            fee=0
-        )
-        calculate_transaction_hash(reward_transaction)
+        reward_transaction = create_reward_transaction(
+            settings, block.reward, block.fees)
 
         # add remaining transactions
         block.transactions = []
@@ -124,11 +102,13 @@ def create_and_post_blocks():
             transaction = json_destruct_transaction(json_transaction)
             block.transactions.append(transaction)
 
-        # solve block (TO DO)
-        block.nonce = "abcdef"
+        # solve block
+        print("Solving block...")
 
-        # calculate hash
-        calculate_block_hash(block)
+        solve_block(
+            block, "00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+
+        print("Found solution", block.nonce, "giving", block.hash)
 
         # construct JSON block
         json_block = json_construct_block(block)
@@ -137,6 +117,7 @@ def create_and_post_blocks():
         json_block_header = json_block_to_block_header(json_block)
 
         # send block to all known nodes
+        print("Sending solution...")
         json_nodes, status_code = local_retrieve_nodes(settings)
 
         if status_code != 200:
@@ -145,7 +126,7 @@ def create_and_post_blocks():
         for json_node in json_nodes:
             general_create_block(settings, json_node, json_block_header)
 
-        time.sleep(10)
+        time.sleep(2)
 
 
 # client arguments

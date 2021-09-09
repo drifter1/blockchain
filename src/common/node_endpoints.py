@@ -40,6 +40,9 @@ def node_endpoints(app: Flask, settings: Node_Settings) -> None:
         if status_code != 200:
             return {}, 400
 
+        if json_nodes == []:
+            return {}, 400
+
         if nid == "random":
             node_index = random.randint(0, len(json_nodes) - 1)
         else:

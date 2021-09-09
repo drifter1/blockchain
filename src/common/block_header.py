@@ -1,8 +1,10 @@
 import time
 
+from common.transactions_header import json_transactions_to_transaction_headers, json_construct_transaction_headers, json_destruct_transaction_headers
+
 
 class BlockHeader:
-    def __init__(self, timestamp: int = None, height: int = None, creator: str = None, reward: float = None, fees: float = None, nonce: str = None, transaction_count: int = None, hash: str = None, prev_hash: str = None):
+    def __init__(self, timestamp: int = None, height: int = None, creator: str = None, reward: float = None, fees: float = None, nonce: str = None, transaction_count: int = None, transaction_headers: list = None, hash: str = None, prev_hash: str = None):
 
         self.timestamp = timestamp if (timestamp != None) else int(time.time())
 
@@ -14,6 +16,8 @@ class BlockHeader:
         self.nonce = nonce
 
         self.transaction_count = transaction_count
+        self.transaction_headers = transaction_headers if (
+            transaction_headers != None) else []
 
         self.hash = hash if (
             hash != None) else "0000000000000000000000000000000000000000000000000000000000000000"
@@ -30,6 +34,7 @@ def json_construct_block_header(block_header: BlockHeader):
         "fees": block_header.fees,
         "nonce": block_header.nonce,
         "transaction_count": block_header.transaction_count,
+        "transaction_headers": json_construct_transaction_headers(block_header.transaction_headers),
         "hash": block_header.hash,
         "prev_hash": block_header.prev_hash
     }
@@ -44,6 +49,9 @@ def json_destruct_block_header(json_block_header: dict):
     block_header.fees = json_block_header["fees"]
     block_header.nonce = json_block_header["nonce"]
     block_header.transaction_count = json_block_header["transaction_count"]
+    json_transaction_headers = json_block_header["transaction_headers"]
+    block_header.transaction_headers = json_destruct_transaction_headers(
+        json_transaction_headers)
     block_header.hash = json_block_header["hash"]
     block_header.prev_hash = json_block_header["prev_hash"]
 
@@ -52,12 +60,15 @@ def json_destruct_block_header(json_block_header: dict):
 
 def json_block_header_is_valid(json_block_header: dict):
     try:
-        if len(json_block_header) == 9:
+        if len(json_block_header) == 10:
             keys = json_block_header.keys()
             if ("timestamp" in keys) and ("height" in keys) and ("creator" in keys):
                 if ("reward" in keys) and ("fees" in keys) and ("nonce" in keys):
-                    if ("transaction_count" in keys) and ("hash" in keys) and ("prev_hash" in keys):
-                        return True
+                    if ("transaction_count" in keys) and ("transaction_headers" in keys):
+                        if ("hash" in keys) and ("prev_hash" in keys):
+                            return True
+                        else:
+                            return False
                     else:
                         return False
                 else:
@@ -79,6 +90,7 @@ def json_block_to_block_header(json_block: dict):
         "fees": json_block["fees"],
         "nonce": json_block["nonce"],
         "transaction_count": json_block["transaction_count"],
+        "transaction_headers": json_transactions_to_transaction_headers(json_block["transactions"]),
         "hash": json_block["hash"],
         "prev_hash": json_block["prev_hash"]
     }

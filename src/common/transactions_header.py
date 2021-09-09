@@ -114,7 +114,7 @@ def json_transaction_to_transaction_header(json_transaction: dict):
     }
 
 
-def json_transactions_to_transactions_header(json_transactions: dict):
+def json_transactions_to_transaction_headers(json_transactions: dict):
     json_transaction_headers = []
 
     for json_transaction in json_transactions:
@@ -122,7 +122,11 @@ def json_transactions_to_transactions_header(json_transactions: dict):
             json_transaction)
         json_transaction_headers.append(json_transaction_header)
 
+    return json_transaction_headers
+
+
+def json_transactions_to_transactions_header(json_transactions: dict):
     return{
         "transaction_count": len(json_transactions),
-        "transaction_headers": json_transaction_headers
+        "transaction_headers": json_transactions_to_transaction_headers(json_transactions)
     }

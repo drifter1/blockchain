@@ -4,18 +4,18 @@ import os
 import _thread
 
 from full_node.settings import Full_Node_Settings
-from full_node.block_validation import check_previous_block, recalculate_and_check_block_hash, check_block_transactions
+from full_node.block_validation import rebuild_block_transactions, check_previous_block, recalculate_and_check_block_hash, check_block_transactions
 from full_node.network_relay import create_block_network_relay
 
 from common.block import json_block_is_valid
-from common.block_header import json_block_header_is_valid, json_block_to_block_header
+from common.block_header import json_block_header_and_transactions_to_block, json_block_header_is_valid, json_block_to_block_header
 from common.blockchain import AddressBalancePair, json_blockchain_info_is_valid, json_destruct_blockchain_info, json_construct_blockchain_info
 from common.transactions_header import json_transactions_to_transactions_header
 from common.utxo import UTXO_Output, json_construct_utxo_output
 
 from common.block_requests import local_retrieve_block_header, local_retrieve_block_transaction, local_retrieve_block_transaction_inputs, local_retrieve_block_transaction_outputs
 from common.blockchain_requests import local_retrieve_blockchain_info, local_update_blockchain_info
-from common.transaction_requests import local_remove_transaction
+from common.transaction_requests import local_remove_transaction, local_retrieve_transactions_header
 from common.utxo_requests import local_remove_utxo_output, local_retrieve_utxo_address, local_retrieve_utxo_output_from_address_and_transaction_hash, local_add_utxo_output
 
 
@@ -155,18 +155,36 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/blocks/', methods=['POST'])
     def create_block():
-        json_block = request.get_json()
+        json_block_header = request.get_json()
 
         # check JSON format
-        if json_block_is_valid(json_block):
+        if json_block_header_is_valid(json_block_header):
 
             # check if block already exists
             json_block_header_local, status_code = local_retrieve_block_header(
-                settings, json_block["height"])
+                settings, json_block_header["height"])
 
             if status_code == 200:
                 if json_block_header_is_valid(json_block_header_local):
                     return {}, 200
+
+            # retrieve unconfirmed transactions header
+            json_transactions_header, status_code = local_retrieve_transactions_header(
+                settings)
+
+            if status_code != 200:
+                return {}, 400
+
+            # rebuild transactions from unconfirmed transactions
+            json_block_transactions, success = rebuild_block_transactions(
+                settings, json_block_header, json_transactions_header)
+
+            if not success:
+                return {}, 400
+
+            # rebuild block
+            json_block = json_block_header_and_transactions_to_block(
+                json_block_header, json_block_transactions)
 
             # check previous block hash and height
             if not check_previous_block(settings, json_block):
@@ -190,7 +208,7 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             _thread.start_new_thread(
                 create_block_relay, (settings, json_block))
 
-            return json.dumps(json_block), 200
+            return {}, 200
 
         else:
             return {}, 400
@@ -236,6 +254,9 @@ def create_block_relay(settings: Full_Node_Settings, json_block: dict):
         for json_input in json_transaction["inputs"]:
             json_utxo_output, status_code = local_retrieve_utxo_output_from_address_and_transaction_hash(
                 settings, json_input["output_address"], json_input["transaction_hash"])
+
+            if status_code != 200:
+                continue
 
             local_remove_utxo_output(
                 settings, json_input["output_address"], json_utxo_output)

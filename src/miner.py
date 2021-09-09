@@ -11,6 +11,7 @@ from common.node_endpoints import node_endpoints
 from common.node_update import update_nodes
 
 from common.block import Block, json_construct_block, calculate_block_hash
+from common.block_header import json_block_to_block_header
 from common.transaction import Input, Output, Transaction, json_destruct_transaction, calculate_output_hash, calculate_transaction_hash
 
 from common.blockchain_requests import general_retrieve_blockchain_info
@@ -132,6 +133,9 @@ def create_and_post_blocks():
         # construct JSON block
         json_block = json_construct_block(block)
 
+        # construct JSON block header
+        json_block_header = json_block_to_block_header(json_block)
+
         # send block to all known nodes
         json_nodes, status_code = local_retrieve_nodes(settings)
 
@@ -139,7 +143,7 @@ def create_and_post_blocks():
             exit()
 
         for json_node in json_nodes:
-            general_create_block(settings, json_node, json_block)
+            general_create_block(settings, json_node, json_block_header)
 
         time.sleep(10)
 

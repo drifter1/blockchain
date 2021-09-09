@@ -48,16 +48,16 @@ Using "random" as the nid returns a random node. Otherwise, nid is the node inde
 For tid both the index and the hash can be used.
 
 ## Block Endpoints
-| Endpoint                                     | HTTP Verb  | Request (JSON)    | Response (JSON)            |  Description                                          |
-| :-----------------------------------------   | :------:   | :--------------:  | :----------------------:   |  :-------------------------------------------------   |
-| /blocks/bid/                                 | GET        | -                 | Block Header               |  Retrieve block header by block id                    |
-| /blocks/bid/transactions/                    | GET        | -                 | Transactions Header        |  Retrieve block transactions header by block id       |
-| /blocks/bid/transactions/tid/                | GET        | -                 | Transaction                |  Retrieve block transaction by bid-tid pair           |
-| /blocks/bid/transactions/tid/inputs/         | GET        | -                 | Transaction input array    |  Retrieve block transaction inputs by bid-tid pair    |
-| /blocks/bid/transactions/tid/inputs/iid/     | GET        | -                 | Transaction input          |  Retrieve block transaction input by bid-tid-iid      |
-| /blocks/bid/transactions/tid/outputs/        | GET        | -                 | Transaction output array   |  Retrieve block transaction outputs by bid-tid pair   |
-| /blocks/bid/transactions/tid/outputs/oid/    | GET        | -                 | Transaction output         |  Retrieve block transaction output by bid-tid-oid     |
-| /blocks/                                     | POST       | Block             | Block                      |  Create new block                                     |
+| Endpoint                                     | HTTP Verb  | Request (JSON)    | Response (JSON)            |  Description                                             |
+| :-----------------------------------------   | :------:   | :--------------:  | :----------------------:   |  :----------------------------------------------------   |
+| /blocks/bid/                                 | GET        | -                 | Block Header               |  Retrieve block header by block id                       |
+| /blocks/bid/transactions/                    | GET        | -                 | Transactions Header        |  Retrieve block transactions header by block id          |
+| /blocks/bid/transactions/tid/                | GET        | -                 | Transaction                |  Retrieve block transaction by bid-tid pair              |
+| /blocks/bid/transactions/tid/inputs/         | GET        | -                 | Transaction input array    |  Retrieve block transaction inputs by bid-tid pair       |
+| /blocks/bid/transactions/tid/inputs/iid/     | GET        | -                 | Transaction input          |  Retrieve block transaction input by bid-tid-iid         |
+| /blocks/bid/transactions/tid/outputs/        | GET        | -                 | Transaction output array   |  Retrieve block transaction outputs by bid-tid pair      |
+| /blocks/bid/transactions/tid/outputs/oid/    | GET        | -                 | Transaction output         |  Retrieve block transaction output by bid-tid-oid        |
+| /blocks/                                     | POST       | Block Header      | -                          |  Create block from header and unconfirmed transactions   |
 
 Using "last" as the bid returns information for the last block in the chain. Otherwise, bid is the block height.
 

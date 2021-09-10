@@ -93,7 +93,7 @@ def create_and_post_blocks():
 
         # reward transaction
         reward_transaction = create_reward_transaction(
-            settings, block.reward, block.fees)
+            settings, block.timestamp, block.reward, block.fees)
 
         # add remaining transactions
         block.transactions = []
@@ -104,7 +104,6 @@ def create_and_post_blocks():
 
         # solve block
         print("Solving block...")
-
         solve_block(
             block, "00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
 
@@ -124,9 +123,15 @@ def create_and_post_blocks():
             exit()
 
         for json_node in json_nodes:
-            general_create_block(settings, json_node, json_block_header)
+            json_ret, status_code = general_create_block(
+                settings, json_node, json_block_header)
 
-        time.sleep(2)
+            if status_code == 200:
+                print("Solution accepted!")
+            else:
+                print("Solution declined!")
+
+        time.sleep(5)
 
 
 # client arguments

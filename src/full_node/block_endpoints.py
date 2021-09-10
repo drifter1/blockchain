@@ -166,6 +166,8 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
             if status_code == 200:
                 if json_block_header_is_valid(json_block_header_local):
+                    print(
+                        "Block", json_block_header["height"], "already exists!")
                     return {}, 200
 
             # retrieve unconfirmed transactions header
@@ -173,6 +175,7 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 settings)
 
             if status_code != 200:
+                print("Error retrieving unconfirmed transactions!")
                 return {}, 400
 
             # rebuild transactions from unconfirmed transactions
@@ -180,22 +183,28 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 settings, json_block_header, json_transactions_header)
 
             if not success:
+                print("Error rebuilding block transactions!")
                 return {}, 400
 
             # rebuild block
             json_block = json_block_header_and_transactions_to_block(
                 json_block_header, json_block_transactions)
 
+            print(json_block)
+
             # check previous block hash and height
             if not check_previous_block(settings, json_block):
+                print("Error checking previous block info!")
                 return {}, 400
 
             # recalculate and check hash
             if not recalculate_and_check_block_hash(json_block):
+                print("Error recalculating and checking hash!")
                 return {}, 400
 
             # check transactions
             if not check_block_transactions(settings, json_block["transactions"]):
+                print("Error checking block transactions!")
                 return {}, 400
 
             # missing consensus

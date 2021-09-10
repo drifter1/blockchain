@@ -36,7 +36,7 @@ def retrieve_unconfirmed_transactions(settings: Miner_Settings, target_node: dic
     return json_transactions
 
 
-def create_reward_transaction(settings: Miner_Settings, block_reward: float, block_fees: float):
+def create_reward_transaction(settings: Miner_Settings, block_timestamp: int, block_reward: float, block_fees: float):
     '''
         Create reward transaction with a value equal to the block reward plus the fees.
     '''
@@ -53,6 +53,7 @@ def create_reward_transaction(settings: Miner_Settings, block_reward: float, blo
     calculate_output_hash(reward_output)
 
     reward_transaction = Transaction(
+        timestamp=block_timestamp,
         inputs=[reward_input],
         outputs=[reward_output],
         value=transaction_value,
@@ -68,8 +69,6 @@ def solve_block(block: Block, target_hash: str):
         Find the solution nonce for the block.
     '''
     while True:
-        block.timestamp = int(time.time())
-
         for nonce in range(0, 1 << 32):
             block.nonce = "{:08x}".format(nonce)
 
@@ -82,3 +81,11 @@ def solve_block(block: Block, target_hash: str):
             # check if smaller then target_hash
             if int(block.hash, 16) < int(target_hash, 16):
                 return
+
+        # as a last resort change timestamp of block and reward transaction
+        block.timestamp = int(time.time())
+
+        reward_transaction: Transaction = block.transactions[0]
+        reward_transaction.timestamp = block.timestamp
+        calculate_transaction_hash(reward_transaction)
+        block.transactions[0] = reward_transaction

@@ -39,6 +39,7 @@ def rebuild_block_transactions(settings: Full_Node_Settings, json_block_header: 
     calculate_output_hash(reward_output)
 
     reward_transaction = Transaction(
+        timestamp=block_header.timestamp,
         inputs=[reward_input],
         outputs=[reward_output],
         value=reward_transaction_value,

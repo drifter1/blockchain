@@ -9,6 +9,7 @@ from full_node.network_relay import post_transaction_network_relay, remove_trans
 from common.transaction import json_transaction_is_valid
 from common.transactions_header import json_transactions_to_transactions_header
 
+
 def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
     @app.route('/transactions/', methods=['GET'])
@@ -59,18 +60,22 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
             # check transaction inputs
             if not check_transaction_inputs(settings, json_transaction["inputs"]):
+                print("Error checking transaction inputs!")
                 return {}, 400
 
             # recalculate and check the transaction input and output values and fee balancing
             if not recalculate_and_check_transaction_values(json_transaction):
+                print("Error recalculating transaction values!")
                 return {}, 400
 
             # recalculate and check hash
             if not recalculate_and_check_transaction_hash(json_transaction):
+                print("Error recalculating and checking transaciton hash!")
                 return {}, 400
 
             # check input signatures
             if not verify_input_signatures(json_transaction["inputs"]):
+                print("Error verifying input signatures!")
                 return {}, 400
 
             # add transaction if not already in transactions
@@ -86,6 +91,7 @@ def transaction_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
                 json.dump(obj=json_transactions, fp=open(
                     settings.transactions_path, "w"))
             else:
+                print("Transaction already exists!")
                 return {}, 200
 
             # network relay

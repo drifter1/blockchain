@@ -131,7 +131,7 @@ def create_and_post_blocks():
             else:
                 print("Solution declined!")
 
-        time.sleep(5)
+        time.sleep(60)
 
 
 # client arguments

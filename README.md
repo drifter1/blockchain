@@ -105,3 +105,10 @@ in order to post a correctly formed transaction.
 Of course there needs to be an UTXO entry for that address, so that the transaction can be formed.
 So, using the testing script's address as a reward address of some miner might be a good idea to get going!
 
+# Future Ideas
+- Blockchain Explorer
+- GUI Wallet
+- Light Nodes (light-weight version of the Full Node, which doesn't keep the whole blockchain)
+- Super Nodes (Nodes that get rewarded for keeping the whole blockchain and confirming blocks and transactions)
+- Proof-of-Work Consensus (actual implementation with adaptive difficulty)
+- Proof-of-Stake Consensus (maybe even hybrid schemes)

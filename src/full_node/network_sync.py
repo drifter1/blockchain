@@ -221,4 +221,4 @@ def network_sync(settings: Full_Node_Settings):
         print("Network Synchronization Finished!")
 
         # wait for a specific interval of time
-        time.sleep(settings.update_interval)
+        time.sleep(settings.sync_interval)

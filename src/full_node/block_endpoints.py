@@ -215,7 +215,7 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
 
             # create block relay
             _thread.start_new_thread(
-                create_block_relay, (settings, json_block))
+                create_block_relay, (settings, json_block, json_block_header))
 
             return {}, 200
 
@@ -223,9 +223,9 @@ def block_endpoints(app: Flask, settings: Full_Node_Settings) -> None:
             return {}, 400
 
 
-def create_block_relay(settings: Full_Node_Settings, json_block: dict):
+def create_block_relay(settings: Full_Node_Settings, json_block: dict, json_block_header: dict):
     # network relay
-    create_block_network_relay(settings, json_block)
+    create_block_network_relay(settings, json_block_header)
 
     # remove included transactions from unconfirmed transactions
     for json_transaction in json_block["transactions"]:
@@ -333,9 +333,9 @@ def retrieve_last_block(settings: Full_Node_Settings):
 
     # load last block
     try:
-        json_block = json.load(
+        json_last_block_header = json.load(
             open(settings.block_file_path + str(height) + ".json", "r"))
     except:
         return {}
 
-    return json_block
+    return json_last_block_header

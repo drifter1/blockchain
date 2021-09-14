@@ -21,8 +21,8 @@ def general_network_relay(settings: Node_Settings, function: exec, json_data: di
             pass
 
 
-def create_block_network_relay(settings: Node_Settings, json_block: dict):
-    general_network_relay(settings, general_create_block, json_block)
+def create_block_network_relay(settings: Node_Settings, json_block_header: dict):
+    general_network_relay(settings, general_create_block, json_block_header)
 
 
 def post_transaction_network_relay(settings: Node_Settings, json_transaction: dict):

@@ -1,0 +1,5 @@
+__pycache__/
+.dns_server*
+.full_node*
+.miner*
+.testing
